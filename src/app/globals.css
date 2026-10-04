@@ -1,0 +1,50 @@
+@import "tailwindcss";
+
+@layer base {
+  :root {
+    --background: #f8fafc;
+    --foreground: #0f172a;
+    --card: #ffffff;
+    --card-foreground: #0f172a;
+    --popover: #ffffff;
+    --popover-foreground: #0f172a;
+    --primary: #0f172a;
+    --primary-foreground: #f8fafc;
+    --secondary: #f1f5f9;
+    --secondary-foreground: #0f172a;
+    --muted: #f1f5f9;
+    --muted-foreground: #64748b;
+    --accent: #f1f5f9;
+    --accent-foreground: #0f172a;
+    --destructive: #e11d48;
+    --destructive-foreground: #f8fafc;
+    --border: #e2e8f0;
+    --input: #e2e8f0;
+    --ring: #94a3b8;
+    --radius: 0.625rem;
+
+    /* Cores de Domínio Finza */
+    --teal-income: #0d9488;
+    --teal-income-bg: #f0fdfa;
+    --teal-income-border: #99f6e4;
+    --teal-income-text: #0f766e;
+
+    --rose-expense: #e11d48;
+    --rose-expense-bg: #fff1f2;
+    --rose-expense-border: #fecdd3;
+    --rose-expense-text: #be123c;
+
+    --violet-ticket: #6366f1;
+    --violet-ticket-bg: #eef2ff;
+    --violet-ticket-border: #c7d2fe;
+    --violet-ticket-text: #4338ca;
+  }
+}
+
+body {
+  background-color: var(--background);
+  color: var(--foreground);
+  font-feature-settings: "cv02", "cv03", "cv04", "cv11";
+  min-height: 100vh;
+  -webkit-font-smoothing: antialiased;
+}
