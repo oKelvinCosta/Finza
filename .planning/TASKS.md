@@ -150,7 +150,7 @@ Este documento decompõe o desenvolvimento do **Finza** em tarefas atômicas seq
   - Estilização para impressão em PDF limpo.
   - *Critério de Aceite:* Gráficos renderizam corretamente e exportação CSV gera arquivo formatado.
 
-- [ ] **TASK-17: Validação e Polimento Geral da Fase 1**
+- [x] **TASK-17: Validação e Polimento Geral da Fase 1**
   - Verificar responsividade (desktop, tablet, mobile).
   - Validar todos os fluxos de navegação sem quebras ou travamentos de hidratação.
   - Garantir consistência estética refinada no padrão Light.

@@ -4,7 +4,7 @@ import { useMonthStore } from "@/stores/use-month-store";
 import { useTransactions } from "@/hooks/use-transactions";
 import { useBudgets } from "@/hooks/use-budgets";
 import { useModalStore } from "@/stores/use-modal-store";
-import { formatCurrency, formatMonthYear } from "@/lib/utils";
+import { formatCurrency, formatMonthYear, formatDate } from "@/lib/utils";
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -83,22 +83,22 @@ export default function DashboardPage() {
   const recentTransactions = [...transactions].slice(0, 5);
 
   return (
-    <div className="space-y-6 max-w-7xl mx-auto">
+    <div className="space-y-4 sm:space-y-6 max-w-7xl mx-auto min-w-0">
       {/* Page Title & Status */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 sm:gap-4">
         <div>
-          <h2 className="text-2xl font-bold tracking-tight text-slate-900">
+          <h2 className="text-xl sm:text-2xl font-bold tracking-tight text-slate-900">
             Painel do Mês — {formatMonthYear(selectedMonth)}
           </h2>
-          <p className="text-sm text-slate-500 mt-0.5">
+          <p className="text-xs sm:text-sm text-slate-500 mt-0.5">
             Visão isolada e instantânea da sua saúde financeira mensal.
           </p>
         </div>
 
-        <div className="flex items-center gap-2">
+        <div className="hidden lg:flex items-center gap-2">
           <Button
             onClick={() => openModal({ defaultType: "expense" })}
-            className="bg-slate-900 text-white hover:bg-slate-800 shadow-sm"
+            className="bg-slate-900 text-white hover:bg-slate-800 shadow-sm cursor-pointer"
           >
             <Plus className="h-4 w-4 mr-1.5" />
             Nova Despesa
@@ -106,7 +106,7 @@ export default function DashboardPage() {
           <Button
             onClick={() => openModal({ defaultType: "income" })}
             variant="outline"
-            className="border-slate-200 text-teal-700 hover:bg-teal-50"
+            className="border-slate-200 text-teal-700 hover:bg-teal-50 cursor-pointer"
           >
             <Plus className="h-4 w-4 mr-1.5 text-teal-600" />
             Nova Receita
@@ -320,7 +320,7 @@ export default function DashboardPage() {
               </div>
             ) : (
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4 items-center">
-                <div className="h-56">
+                <div className="h-56 w-full min-w-0">
                   <ResponsiveContainer width="100%" height="100%">
                     <PieChart>
                       <Pie
@@ -355,14 +355,14 @@ export default function DashboardPage() {
                     const pct = totalActualExpenses > 0 ? Math.round((item.value / totalActualExpenses) * 100) : 0;
                     return (
                       <div key={item.name} className="flex items-center justify-between text-xs">
-                        <div className="flex items-center gap-2">
+                        <div className="flex items-center gap-2 min-w-0">
                           <span
                             className="h-2.5 w-2.5 rounded-full shrink-0"
                             style={{ backgroundColor: item.color }}
                           />
-                          <span className="font-medium text-slate-700">{item.name}</span>
+                          <span className="font-medium text-slate-700 truncate">{item.name}</span>
                         </div>
-                        <div className="text-right">
+                        <div className="text-right shrink-0">
                           <span className="font-semibold text-slate-900">{formatCurrency(item.value)}</span>
                           <span className="text-slate-400 ml-1.5">({pct}%)</span>
                         </div>
@@ -378,7 +378,7 @@ export default function DashboardPage() {
 
       {/* BLOCO 4: ÚLTIMAS TRANSAÇÕES DO MÊS */}
       <Card className="border-slate-200/80 bg-white">
-        <CardHeader className="flex flex-row items-center justify-between">
+        <CardHeader className="flex flex-row items-center justify-between pb-3">
           <div>
             <CardTitle className="text-base font-bold text-slate-900">
               Movimentações Recentes do Mês
@@ -387,9 +387,9 @@ export default function DashboardPage() {
           </div>
           <Link
             href="/transactions"
-            className="text-xs font-semibold text-slate-700 hover:text-slate-900 flex items-center gap-1"
+            className="text-xs font-semibold text-slate-700 hover:text-slate-900 flex items-center gap-1 shrink-0"
           >
-            Ver Extrato Completo
+            <span>Ver Extrato</span>
             <ArrowRight className="h-3 w-3" />
           </Link>
         </CardHeader>
@@ -401,27 +401,27 @@ export default function DashboardPage() {
           ) : (
             <div className="divide-y divide-slate-100">
               {recentTransactions.map((tx) => (
-                <div key={tx.id} className="py-3 flex items-center justify-between">
-                  <div className="flex items-center gap-3">
+                <div key={tx.id} className="py-2.5 sm:py-3 flex items-center justify-between gap-2 min-w-0">
+                  <div className="flex items-center gap-2.5 min-w-0">
                     <div
                       className="h-2.5 w-2.5 rounded-full shrink-0"
                       style={{ backgroundColor: tx.category?.color || "#94a3b8" }}
                     />
-                    <div>
-                      <p className="text-sm font-semibold text-slate-900">{tx.description}</p>
-                      <p className="text-xs text-slate-400">
-                        {tx.date} • {tx.category?.name || "Sem categoria"} •{" "}
+                    <div className="min-w-0">
+                      <p className="text-sm font-semibold text-slate-900 truncate">{tx.description}</p>
+                      <p className="text-[11px] sm:text-xs text-slate-400 truncate">
+                        {formatDate(tx.date)} • {tx.payment_method === "ticket" ? "Ticket" : tx.category?.name || "Sem categoria"} •{" "}
                         <span className="capitalize">{tx.payment_method}</span>
                       </p>
                     </div>
                   </div>
 
-                  <div className="flex items-center gap-3">
-                    <Badge variant={tx.is_paid ? "paid" : "pending"}>
+                  <div className="flex items-center gap-2 shrink-0">
+                    <Badge variant={tx.is_paid ? "paid" : "pending"} className="hidden sm:inline-flex text-[10px]">
                       {tx.is_paid ? "Pago" : "Pendente"}
                     </Badge>
                     <span
-                      className={`text-sm font-bold ${
+                      className={`text-sm font-bold whitespace-nowrap ${
                         tx.type === "income" ? "text-teal-700" : "text-rose-700"
                       }`}
                     >

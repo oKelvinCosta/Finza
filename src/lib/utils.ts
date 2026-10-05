@@ -27,3 +27,10 @@ export function formatMonthYear(monthYear: string): string {
   const monthName = new Intl.DateTimeFormat("pt-BR", { month: "long" }).format(date);
   return `${monthName.charAt(0).toUpperCase() + monthName.slice(1)} de ${year}`;
 }
+
+export function formatMonthYearShort(monthYear: string): string {
+  const [year, month] = monthYear.split("-").map(Number);
+  const date = new Date(year, month - 1, 1);
+  const monthName = new Intl.DateTimeFormat("pt-BR", { month: "short" }).format(date).replace(".", "");
+  return `${monthName.charAt(0).toUpperCase() + monthName.slice(1)} ${year}`;
+}

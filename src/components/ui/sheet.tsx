@@ -37,6 +37,8 @@ const sheetVariants = cva(
         left: "inset-y-0 left-0 h-full w-3/4 border-r border-slate-200 data-[state=closed]:slide-out-to-left data-[state=open]:slide-in-from-left sm:max-w-md",
         right:
           "inset-y-0 right-0 h-full w-full sm:w-[480px] border-l border-slate-200 data-[state=closed]:slide-out-to-right data-[state=open]:slide-in-from-right",
+        responsive:
+          "inset-x-0 bottom-0 max-h-[92vh] rounded-t-3xl border-t border-slate-200/80 data-[state=closed]:slide-out-to-bottom data-[state=open]:slide-in-from-bottom sm:inset-y-0 sm:left-auto sm:right-0 sm:h-full sm:w-[480px] sm:rounded-none sm:border-t-0 sm:border-l sm:max-h-full sm:data-[state=closed]:slide-out-to-right sm:data-[state=open]:slide-in-from-right",
       },
     },
     defaultVariants: {

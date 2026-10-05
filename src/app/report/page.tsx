@@ -136,31 +136,31 @@ export default function ReportsPage() {
   };
 
   return (
-    <div className="space-y-6 max-w-7xl mx-auto">
+    <div className="space-y-4 sm:space-y-6 max-w-7xl mx-auto min-w-0">
       {/* Topo da Página com Ações de Exportação */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 sm:gap-4">
         <div>
-          <h2 className="text-2xl font-bold tracking-tight text-slate-900">
+          <h2 className="text-xl sm:text-2xl font-bold tracking-tight text-slate-900">
             Relatórios Financeiros — {formatMonthYear(selectedMonth)}
           </h2>
-          <p className="text-sm text-slate-500 mt-0.5">
+          <p className="text-xs sm:text-sm text-slate-500 mt-0.5">
             Métricas inteligentes, comparativos históricos e exportação dos dados.
           </p>
         </div>
 
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-2 w-full sm:w-auto">
           <Button
             variant="outline"
             onClick={() => window.print()}
-            className="border-slate-200 bg-white hover:bg-slate-50 text-slate-700 shadow-xs flex items-center gap-2"
+            className="border-slate-200 bg-white hover:bg-slate-50 text-slate-700 shadow-xs flex-1 sm:flex-initial flex items-center justify-center gap-1.5 h-9 text-xs sm:text-sm cursor-pointer"
           >
             <Printer className="h-4 w-4" />
-            <span>Imprimir / PDF</span>
+            <span>Imprimir</span>
           </Button>
 
           <Button
             onClick={handleExportCSV}
-            className="bg-slate-900 text-white hover:bg-slate-800 shadow-sm flex items-center gap-2"
+            className="bg-slate-900 text-white hover:bg-slate-800 shadow-sm flex-1 sm:flex-initial flex items-center justify-center gap-1.5 h-9 text-xs sm:text-sm cursor-pointer"
           >
             <Download className="h-4 w-4" />
             <span>Exportar CSV</span>
@@ -169,7 +169,7 @@ export default function ReportsPage() {
       </div>
 
       {/* CARDS DE MÉTRICAS INTELIGENTES */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+      <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 sm:gap-4">
         {/* Maior Gasto */}
         <Card className="border-slate-200/80 bg-white">
           <CardHeader className="flex flex-row items-center justify-between pb-2">
@@ -181,7 +181,7 @@ export default function ReportsPage() {
             </div>
           </CardHeader>
           <CardContent>
-            <div className="text-xl font-bold text-slate-900">
+            <div className="text-lg sm:text-xl font-bold text-slate-900">
               {topCategory ? topCategory.name : "Nenhuma"}
             </div>
             <p className="text-xs text-rose-700 font-semibold mt-1">
@@ -201,7 +201,7 @@ export default function ReportsPage() {
             </div>
           </CardHeader>
           <CardContent>
-            <div className="text-xl font-bold text-slate-900">
+            <div className="text-lg sm:text-xl font-bold text-slate-900">
               {formatCurrency(mediaDiariaGastos)}
               <span className="text-xs font-normal text-slate-400"> / dia</span>
             </div>
@@ -222,7 +222,7 @@ export default function ReportsPage() {
             </div>
           </CardHeader>
           <CardContent>
-            <div className="text-xl font-bold text-indigo-950">
+            <div className="text-lg sm:text-xl font-bold text-indigo-950">
               {formatCurrency(ritmoDiarioTicket)}
               <span className="text-xs font-normal text-indigo-700"> / dia</span>
             </div>
@@ -237,20 +237,25 @@ export default function ReportsPage() {
 
       {/* ABAS COM GRÁFICOS DETALHADOS */}
       <Tabs defaultValue="overview" className="space-y-4">
-        <TabsList className="bg-white border border-slate-200/80 p-1">
-          <TabsTrigger value="overview" className="gap-2">
-            <BarChart2 className="h-4 w-4" />
-            <span>Visão Geral</span>
-          </TabsTrigger>
-          <TabsTrigger value="category" className="gap-2">
-            <PieIcon className="h-4 w-4" />
-            <span>Por Categoria</span>
-          </TabsTrigger>
-          <TabsTrigger value="history" className="gap-2">
-            <Clock className="h-4 w-4" />
-            <span>Histórico Multimeses</span>
-          </TabsTrigger>
-        </TabsList>
+        <div className="w-full">
+          <TabsList className="bg-white border border-slate-200/80 p-1 w-full grid grid-cols-3 h-auto">
+            <TabsTrigger value="overview" className="gap-1.5 py-2 text-xs">
+              <BarChart2 className="h-3.5 w-3.5 sm:h-4 sm:w-4" />
+              <span className="sm:hidden">Geral</span>
+              <span className="hidden sm:inline">Visão Geral</span>
+            </TabsTrigger>
+            <TabsTrigger value="category" className="gap-1.5 py-2 text-xs">
+              <PieIcon className="h-3.5 w-3.5 sm:h-4 sm:w-4" />
+              <span className="sm:hidden">Categorias</span>
+              <span className="hidden sm:inline">Por Categoria</span>
+            </TabsTrigger>
+            <TabsTrigger value="history" className="gap-1.5 py-2 text-xs">
+              <Clock className="h-3.5 w-3.5 sm:h-4 sm:w-4" />
+              <span className="sm:hidden">Histórico</span>
+              <span className="hidden sm:inline">Histórico Multimeses</span>
+            </TabsTrigger>
+          </TabsList>
+        </div>
 
         {/* Aba 1: Visão Geral */}
         <TabsContent value="overview">
@@ -264,7 +269,7 @@ export default function ReportsPage() {
               </CardDescription>
             </CardHeader>
             <CardContent>
-              <div className="h-80">
+              <div className="h-64 sm:h-80 w-full min-w-0">
                 <ResponsiveContainer width="100%" height="100%">
                   <BarChart
                     data={[
@@ -351,7 +356,7 @@ export default function ReportsPage() {
               <CardDescription>Comparativo de Receitas vs Despesas ao longo do tempo.</CardDescription>
             </CardHeader>
             <CardContent>
-              <div className="h-80">
+              <div className="h-64 sm:h-80 w-full min-w-0">
                 <ResponsiveContainer width="100%" height="100%">
                   <BarChart data={historyData} margin={{ top: 20, right: 30, left: 20, bottom: 5 }}>
                     <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f1f5f9" />

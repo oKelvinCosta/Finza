@@ -1,4 +1,4 @@
-import type { Metadata } from "next";
+import type { Metadata, Viewport } from "next";
 import { Inter } from "next/font/google";
 import "./globals.css";
 import { QueryProvider } from "@/components/providers/query-provider";
@@ -18,20 +18,29 @@ export const metadata: Metadata = {
   description: "Controle financeiro pessoal simples, moderno e de alta performance.",
 };
 
+export const viewport: Viewport = {
+  width: "device-width",
+  initialScale: 1,
+  maximumScale: 1,
+  userScalable: false,
+  viewportFit: "cover",
+  themeColor: "#ffffff",
+};
+
 export default function RootLayout({
   children,
 }: Readonly<{
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="pt-BR">
-      <body className={`${inter.variable} font-sans antialiased bg-slate-50 text-slate-900`}>
+    <html lang="pt-BR" className="overflow-x-hidden">
+      <body className={`${inter.variable} font-sans antialiased bg-slate-50 text-slate-900 overflow-x-hidden min-h-screen`}>
         <QueryProvider>
-          <div className="flex min-h-screen">
+          <div className="flex min-h-screen w-full max-w-full overflow-x-hidden">
             <AppSidebar />
-            <div className="flex-1 flex flex-col min-w-0">
+            <div className="flex-1 flex flex-col min-w-0 max-w-full overflow-x-hidden">
               <AppHeader />
-              <main className="flex-1 p-4 sm:p-6 md:p-8 pb-28 lg:pb-8 overflow-y-auto">
+              <main className="flex-1 p-3 sm:p-5 md:p-8 pb-24 lg:pb-8 min-w-0 max-w-full overflow-x-hidden">
                 {children}
               </main>
             </div>

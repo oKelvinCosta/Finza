@@ -10,14 +10,14 @@ export function AppHeader() {
   const { openModal } = useModalStore();
 
   return (
-    <header className="sticky top-0 z-30 flex h-16 items-center justify-between border-b border-slate-200/80 bg-white/95 px-4 md:px-6 backdrop-blur-xs">
-      <div className="flex items-center gap-3">
+    <header className="sticky top-0 z-30 flex h-14 sm:h-16 items-center justify-between border-b border-slate-200/80 bg-white/95 px-3 sm:px-4 md:px-6 backdrop-blur-xs min-w-0 max-w-full">
+      <div className="flex items-center gap-2 sm:gap-3 min-w-0">
         {/* Logo visível apenas no Mobile / Tablet */}
-        <Link href="/" className="flex lg:hidden items-center gap-2 mr-1">
+        <Link href="/" className="flex lg:hidden items-center gap-1.5 sm:gap-2 shrink-0" title="Finza">
           <div className="h-8 w-8 rounded-lg bg-slate-900 flex items-center justify-center text-white shadow-xs">
             <Wallet className="h-4 w-4 text-teal-400" />
           </div>
-          <span className="font-bold text-base text-slate-900 tracking-tight">Finza</span>
+          <span className="hidden sm:inline font-bold text-base text-slate-900 tracking-tight">Finza</span>
         </Link>
 
         <MonthSelector />

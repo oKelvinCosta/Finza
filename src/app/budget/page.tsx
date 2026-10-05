@@ -103,14 +103,14 @@ export default function BudgetPage() {
   const overallProgress = totalBudgeted > 0 ? Math.round((totalSpent / totalBudgeted) * 100) : 0;
 
   return (
-    <div className="space-y-6 max-w-7xl mx-auto">
+    <div className="space-y-4 sm:space-y-6 max-w-7xl mx-auto min-w-0">
       {/* Topo da Página */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 sm:gap-4">
         <div>
-          <h2 className="text-2xl font-bold tracking-tight text-slate-900">
+          <h2 className="text-xl sm:text-2xl font-bold tracking-tight text-slate-900">
             Orçamento de {formatMonthYear(selectedMonth)}
           </h2>
-          <p className="text-sm text-slate-500 mt-0.5">
+          <p className="text-xs sm:text-sm text-slate-500 mt-0.5">
             Definição e acompanhamento dos tetos de gastos por categoria para o período.
           </p>
         </div>
@@ -118,7 +118,7 @@ export default function BudgetPage() {
         <Button
           onClick={() => setCopyModalOpen(true)}
           variant="outline"
-          className="border-slate-200 bg-white hover:bg-slate-50 text-slate-700 shadow-xs flex items-center gap-2"
+          className="border-slate-200 bg-white hover:bg-slate-50 text-slate-700 shadow-xs flex items-center justify-center gap-2 cursor-pointer w-full sm:w-auto h-9 text-xs sm:text-sm"
         >
           <Copy className="h-4 w-4" />
           <span>Copiar do Mês Anterior</span>
@@ -127,32 +127,32 @@ export default function BudgetPage() {
 
       {/* Card Resumo do Orçamento Geral */}
       <Card className="border-slate-200/80 bg-white shadow-xs">
-        <CardContent className="pt-6">
-          <div className="grid grid-cols-1 md:grid-cols-4 gap-6 items-center">
+        <CardContent className="p-4 sm:pt-6">
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-4 sm:gap-6 items-center">
             <div>
-              <p className="text-xs font-semibold text-slate-500 uppercase tracking-wider">
+              <p className="text-[11px] sm:text-xs font-semibold text-slate-500 uppercase tracking-wider">
                 Total Planejado
               </p>
-              <p className="text-2xl font-bold text-slate-900 mt-1">
+              <p className="text-lg sm:text-2xl font-bold text-slate-900 mt-0.5 sm:mt-1">
                 {formatCurrency(totalBudgeted)}
               </p>
             </div>
 
             <div>
-              <p className="text-xs font-semibold text-slate-500 uppercase tracking-wider">
+              <p className="text-[11px] sm:text-xs font-semibold text-slate-500 uppercase tracking-wider">
                 Total Gasto
               </p>
-              <p className="text-2xl font-bold text-slate-900 mt-1">
+              <p className="text-lg sm:text-2xl font-bold text-slate-900 mt-0.5 sm:mt-1">
                 {formatCurrency(totalSpent)}
               </p>
             </div>
 
             <div>
-              <p className="text-xs font-semibold text-slate-500 uppercase tracking-wider">
-                Saldo Orçado Disponível
+              <p className="text-[11px] sm:text-xs font-semibold text-slate-500 uppercase tracking-wider">
+                Saldo Orçado
               </p>
               <p
-                className={`text-2xl font-bold mt-1 ${
+                className={`text-lg sm:text-2xl font-bold mt-0.5 sm:mt-1 ${
                   totalBudgeted - totalSpent >= 0 ? "text-teal-700" : "text-rose-700"
                 }`}
               >
@@ -160,12 +160,12 @@ export default function BudgetPage() {
               </p>
             </div>
 
-            <div className="space-y-2">
+            <div className="col-span-2 md:col-span-1 space-y-1.5 sm:space-y-2 pt-2 md:pt-0 border-t md:border-t-0 border-slate-100">
               <div className="flex justify-between text-xs font-medium">
                 <span className="text-slate-600">Consumo Geral:</span>
                 <span className="font-bold text-slate-900">{overallProgress}%</span>
               </div>
-              <Progress value={overallProgress} autoSemanticColor className="h-2.5" />
+              <Progress value={overallProgress} autoSemanticColor className="h-2 sm:h-2.5" />
             </div>
           </div>
         </CardContent>
@@ -258,12 +258,12 @@ export default function BudgetPage() {
                       onChange={(e) =>
                         setEditingAmounts({ ...editingAmounts, [cat.id]: e.target.value })
                       }
-                      className="h-8 text-xs font-semibold"
+                      className="h-9 text-xs sm:text-sm font-semibold"
                     />
                     <Button
                       size="sm"
                       onClick={() => handleSaveBudget(cat.id)}
-                      className="h-8 px-2.5 bg-slate-900 text-white hover:bg-slate-800 text-xs"
+                      className="h-9 px-3 bg-slate-900 text-white hover:bg-slate-800 text-xs cursor-pointer"
                       title="Salvar Teto"
                     >
                       <Save className="h-3.5 w-3.5" />
@@ -278,7 +278,7 @@ export default function BudgetPage() {
 
       {/* Diálogo de Clonagem com 2 Opções (Sobrescrever tudo ou Apenas vazias) */}
       <Dialog open={copyModalOpen} onOpenChange={setCopyModalOpen}>
-        <DialogContent className="sm:max-w-[450px]">
+        <DialogContent className="w-[94vw] max-w-[450px] rounded-2xl p-5 sm:p-6">
           <DialogHeader>
             <DialogTitle>Copiar Orçamento do Mês Anterior</DialogTitle>
             <DialogDescription>

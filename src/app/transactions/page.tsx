@@ -10,7 +10,7 @@ import {
 } from "@/hooks/use-transactions";
 import { useCategories } from "@/hooks/use-categories";
 import { useModalStore } from "@/stores/use-modal-store";
-import { formatCurrency, formatDate, formatMonthYear } from "@/lib/utils";
+import { cn, formatCurrency, formatDate, formatMonthYear } from "@/lib/utils";
 import { Transaction } from "@/types";
 import { toast } from "sonner";
 
@@ -62,6 +62,9 @@ import {
   FilterX,
   Calendar,
   Layers,
+  SlidersHorizontal,
+  ChevronDown,
+  ChevronUp,
 } from "lucide-react";
 
 type SortOption = "date_desc" | "date_asc" | "amount_desc" | "amount_asc";
@@ -114,6 +117,13 @@ export default function TransactionsPage() {
   const [categoryFilter, setCategoryFilter] = useState<string>("all");
   const [paymentFilter, setPaymentFilter] = useState<string>("all");
   const [sortBy, setSortBy] = useState<SortOption>("date_desc");
+  const [mobileFiltersOpen, setMobileFiltersOpen] = useState(false);
+
+  const activeFiltersCount =
+    (typeFilter !== "all" ? 1 : 0) +
+    (categoryFilter !== "all" ? 1 : 0) +
+    (paymentFilter !== "all" ? 1 : 0) +
+    (sortBy !== "date_desc" ? 1 : 0);
 
   // Estado para exclusão com confirmação
   const [txToDelete, setTxToDelete] = useState<Transaction | null>(null);
@@ -378,15 +388,130 @@ export default function TransactionsPage() {
     </TableRow>
   );
 
+  // Renderizador de card mobile de transação (estilo Nubank/Revolut)
+  const renderTransactionCard = (tx: Transaction) => (
+    <div
+      key={tx.id}
+      className="p-3 bg-white border border-slate-200/80 rounded-xl shadow-2xs hover:border-slate-300 transition-all flex flex-col gap-2"
+    >
+      {/* Linha 1: Categoria/Ticket + Data + Método */}
+      <div className="flex items-center justify-between text-xs">
+        <div className="flex items-center gap-1.5 min-w-0">
+          {tx.payment_method === "ticket" ? (
+            <Badge variant="ticket" className="text-[10px] py-0 px-2 font-medium">
+              Ticket
+            </Badge>
+          ) : (
+            <div className="flex items-center gap-1.5 truncate">
+              <span
+                className="h-2 w-2 rounded-full shrink-0"
+                style={{ backgroundColor: tx.category?.color || "#94a3b8" }}
+              />
+              <span className="font-medium text-slate-600 truncate text-[11px]">
+                {tx.category?.name || "Sem categoria"}
+              </span>
+            </div>
+          )}
+        </div>
+
+        <div className="flex items-center gap-1.5 shrink-0">
+          <span className="text-slate-400 font-medium text-[11px]">{formatDate(tx.date)}</span>
+          <Badge
+            variant={tx.payment_method === "ticket" ? "ticket" : "secondary"}
+            className="capitalize text-[10px] py-0 px-1.5 font-normal"
+          >
+            {tx.payment_method}
+          </Badge>
+        </div>
+      </div>
+
+      {/* Linha 2: Descrição e notas */}
+      <div className="min-w-0">
+        <h4 className="font-semibold text-slate-900 text-sm leading-snug break-words">
+          {tx.description}
+        </h4>
+        {tx.notes && (
+          <p className="text-xs text-slate-400 mt-0.5 line-clamp-1">{tx.notes}</p>
+        )}
+      </div>
+
+      {/* Linha 3: Valor formatado + Toggle rápido de status (1 toque) + Ações */}
+      <div className="flex items-center justify-between pt-1.5 border-t border-slate-100">
+        <span
+          className={`font-bold text-base ${
+            tx.type === "income" ? "text-teal-700" : "text-rose-700"
+          }`}
+        >
+          {tx.type === "income" ? "+" : "-"} {formatCurrency(tx.amount)}
+        </span>
+
+        <div className="flex items-center gap-1.5">
+          <button
+            type="button"
+            onClick={() => handleTogglePaid(tx)}
+            title="Alternar Pago/Pendente"
+            className="cursor-pointer active:scale-95 transition-transform"
+          >
+            <Badge variant={tx.is_paid ? "paid" : "pending"} className="gap-1 py-0.5 text-[11px]">
+              {tx.is_paid ? (
+                <CheckCircle2 className="h-3 w-3 text-teal-600" />
+              ) : (
+                <Clock className="h-3 w-3 text-amber-600" />
+              )}
+              <span>{tx.is_paid ? "Pago" : "Pendente"}</span>
+            </Badge>
+          </button>
+
+          {/* Menu Dropdown de Ações */}
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <Button
+                variant="ghost"
+                size="icon"
+                className="h-7 w-7 text-slate-400 hover:text-slate-900 cursor-pointer"
+              >
+                <MoreVertical className="h-3.5 w-3.5" />
+              </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="end" className="w-40">
+              <DropdownMenuItem
+                onClick={() => openModal({ transaction: tx })}
+                className="gap-2 cursor-pointer"
+              >
+                <Pencil className="h-3.5 w-3.5" />
+                <span>Editar</span>
+              </DropdownMenuItem>
+              <DropdownMenuItem
+                onClick={() => handleDuplicate(tx)}
+                className="gap-2 cursor-pointer"
+              >
+                <Copy className="h-3.5 w-3.5" />
+                <span>Duplicar</span>
+              </DropdownMenuItem>
+              <DropdownMenuSeparator />
+              <DropdownMenuItem
+                onClick={() => setTxToDelete(tx)}
+                className="gap-2 text-rose-600 focus:text-rose-600 cursor-pointer"
+              >
+                <Trash2 className="h-3.5 w-3.5" />
+                <span>Excluir</span>
+              </DropdownMenuItem>
+            </DropdownMenuContent>
+          </DropdownMenu>
+        </div>
+      </div>
+    </div>
+  );
+
   return (
-    <div className="space-y-6 max-w-7xl mx-auto">
+    <div className="space-y-4 sm:space-y-6 max-w-7xl mx-auto min-w-0">
       {/* Topo da Página */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 sm:gap-4">
         <div>
-          <h2 className="text-2xl font-bold tracking-tight text-slate-900">
+          <h2 className="text-xl sm:text-2xl font-bold tracking-tight text-slate-900">
             Extrato de {formatMonthYear(selectedMonth)}
           </h2>
-          <p className="text-sm text-slate-500 mt-0.5">
+          <p className="text-xs sm:text-sm text-slate-500 mt-0.5">
             Gerenciamento completo das movimentações com agrupamento semanal e ordenação dinâmica.
           </p>
         </div>
@@ -401,8 +526,111 @@ export default function TransactionsPage() {
       </div>
 
       {/* Barra de Filtros e Busca */}
-      <div className="bg-white p-4 rounded-xl border border-slate-200/80 shadow-xs space-y-3">
-        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-6 gap-3">
+      <div className="bg-white p-3 sm:p-4 rounded-xl border border-slate-200/80 shadow-xs space-y-3">
+        {/* Mobile: Barra de Busca + Botão Filtros */}
+        <div className="flex md:hidden items-center gap-2">
+          <div className="relative flex-1">
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400" />
+            <Input
+              placeholder="Buscar por descrição..."
+              value={search}
+              onChange={(e) => setSearch(e.target.value)}
+              className="pl-9 h-9 text-xs bg-slate-50/50"
+            />
+          </div>
+
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={() => setMobileFiltersOpen((prev) => !prev)}
+            className={cn(
+              "h-9 px-3 text-xs gap-1.5 border-slate-200 cursor-pointer shrink-0",
+              activeFiltersCount > 0 ? "bg-slate-900 text-white hover:bg-slate-800 border-slate-900" : "text-slate-700 bg-white"
+            )}
+          >
+            <SlidersHorizontal className="h-3.5 w-3.5" />
+            <span>Filtros</span>
+            {activeFiltersCount > 0 && (
+              <span className="h-4 w-4 rounded-full bg-teal-500 text-white text-[10px] font-bold flex items-center justify-center">
+                {activeFiltersCount}
+              </span>
+            )}
+            {mobileFiltersOpen ? <ChevronUp className="h-3 w-3" /> : <ChevronDown className="h-3 w-3" />}
+          </Button>
+        </div>
+
+        {/* Mobile: Painel de Filtros Colapsável */}
+        {mobileFiltersOpen && (
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5 pt-2 pb-1 md:hidden border-t border-slate-100">
+            {/* Filtro por Tipo */}
+            <div className="space-y-1">
+              <label className="text-[11px] font-medium text-slate-500">Tipo de Transação</label>
+              <Select value={typeFilter} onValueChange={setTypeFilter}>
+                <SelectTrigger className="h-9 bg-slate-50/50 text-xs">
+                  <SelectValue placeholder="Tipo" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">Todos os Tipos</SelectItem>
+                  <SelectItem value="income">Receitas</SelectItem>
+                  <SelectItem value="expense">Despesas</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+
+            {/* Filtro por Categoria */}
+            <div className="space-y-1">
+              <label className="text-[11px] font-medium text-slate-500">Categoria</label>
+              <Select value={categoryFilter} onValueChange={setCategoryFilter}>
+                <SelectTrigger className="h-9 bg-slate-50/50 text-xs">
+                  <SelectValue placeholder="Categoria" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">Todas as Categorias</SelectItem>
+                  {categories.map((c) => (
+                    <SelectItem key={c.id} value={c.id}>
+                      {c.name}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+
+            {/* Filtro por Método */}
+            <div className="space-y-1">
+              <label className="text-[11px] font-medium text-slate-500">Forma de Pagamento</label>
+              <Select value={paymentFilter} onValueChange={setPaymentFilter}>
+                <SelectTrigger className="h-9 bg-slate-50/50 text-xs">
+                  <SelectValue placeholder="Forma" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">Todas as Formas</SelectItem>
+                  <SelectItem value="credito">Crédito</SelectItem>
+                  <SelectItem value="pix">Pix</SelectItem>
+                  <SelectItem value="ticket">Ticket</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+
+            {/* Ordenação */}
+            <div className="space-y-1">
+              <label className="text-[11px] font-medium text-slate-500">Classificação</label>
+              <Select value={sortBy} onValueChange={(val) => setSortBy(val as SortOption)}>
+                <SelectTrigger className="h-9 bg-slate-50/50 text-xs">
+                  <SelectValue placeholder="Ordenar" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="date_desc">Mais recentes (Padrão)</SelectItem>
+                  <SelectItem value="date_asc">Mais antigas primeiro</SelectItem>
+                  <SelectItem value="amount_desc">Maior valor</SelectItem>
+                  <SelectItem value="amount_asc">Menor valor</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+          </div>
+        )}
+
+        {/* Desktop: Grid Completa de Filtros */}
+        <div className="hidden md:grid md:grid-cols-6 gap-3">
           {/* Busca textual */}
           <div className="md:col-span-2 relative">
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400" />
@@ -481,7 +709,7 @@ export default function TransactionsPage() {
             {!isWeeklyGrouped && (
               <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md bg-amber-50 text-amber-700 border border-amber-200">
                 <Layers className="h-3 w-3" />
-                Ranking corrido por valor
+                Ranking corrido
               </span>
             )}
           </div>
@@ -495,7 +723,7 @@ export default function TransactionsPage() {
                 className="h-7 text-xs text-slate-700 gap-1 cursor-pointer"
               >
                 <Calendar className="h-3.5 w-3.5" />
-                Ver agrupado por semanas
+                Agrupado por semanas
               </Button>
             )}
 
@@ -514,14 +742,14 @@ export default function TransactionsPage() {
         </div>
       </div>
 
-      {/* Tabela de Transações */}
+      {/* Conteúdo de Transações: Híbrido (Cards no Mobile, Tabela no Desktop) */}
       <div className="bg-white rounded-xl border border-slate-200/80 shadow-xs overflow-hidden">
         {isLoading ? (
           <div className="py-12 text-center text-slate-400 text-sm">
             Carregando transações do mês...
           </div>
         ) : filteredAndSortedTransactions.length === 0 ? (
-          <div className="py-16 text-center">
+          <div className="py-16 text-center px-4">
             <p className="text-slate-500 font-medium text-base">
               Nenhuma transação encontrada.
             </p>
@@ -535,19 +763,18 @@ export default function TransactionsPage() {
           /* Visão Agrupada por Semanas (Segunda a Domingo) */
           <div className="divide-y divide-slate-200">
             {weekGroups.map((group) => (
-              <div key={group.weekKey} className="overflow-x-auto">
+              <div key={group.weekKey}>
                 {/* Cabeçalho da Semana com Totais Segregados */}
-                <div className="bg-slate-50/90 px-4 py-2.5 border-b border-slate-200/80 flex flex-wrap items-center justify-between gap-3">
+                <div className="bg-slate-50/90 px-3.5 sm:px-4 py-2.5 border-b border-slate-200/80 flex flex-col sm:flex-row sm:items-center justify-between gap-1.5 sm:gap-3">
                   <div className="flex items-center gap-2">
-                    <Calendar className="h-4 w-4 text-slate-600" />
-                    <span className="font-bold text-slate-800 text-sm">{group.label}</span>
-                    <span className="text-xs text-slate-400 font-normal">
-                      ({group.transactions.length}{" "}
-                      {group.transactions.length === 1 ? "lançamento" : "lançamentos"})
+                    <Calendar className="h-4 w-4 text-slate-600 shrink-0" />
+                    <span className="font-bold text-slate-800 text-xs sm:text-sm">{group.label}</span>
+                    <span className="text-[11px] text-slate-400 font-normal">
+                      ({group.transactions.length})
                     </span>
                   </div>
 
-                  <div className="flex items-center gap-3 text-xs">
+                  <div className="flex items-center gap-2.5 text-xs">
                     <span className="text-slate-700 font-medium">
                       Gasto pessoal:{" "}
                       <strong className="text-slate-900 font-semibold">
@@ -556,51 +783,67 @@ export default function TransactionsPage() {
                     </span>
 
                     {group.ticketTotal > 0 && (
-                      <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full font-semibold bg-orange-50 text-orange-700 border border-orange-200">
+                      <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full font-semibold text-[11px] bg-orange-50 text-orange-700 border border-orange-200">
                         Ticket: {formatCurrency(group.ticketTotal)}
                       </span>
                     )}
                   </div>
                 </div>
 
-                <Table>
-                  <TableHeader>
-                    <TableRow className="bg-slate-50/30 text-[11px] uppercase tracking-wider text-slate-500">
-                      <TableHead className="w-[120px]">Data</TableHead>
-                      <TableHead>Descrição</TableHead>
-                      <TableHead>Categoria</TableHead>
-                      <TableHead>Forma</TableHead>
-                      <TableHead>Status</TableHead>
-                      <TableHead className="text-right">Valor</TableHead>
-                      <TableHead className="w-[60px] text-center">Ações</TableHead>
-                    </TableRow>
-                  </TableHeader>
-                  <TableBody>
-                    {group.transactions.map((tx) => renderTransactionRow(tx))}
-                  </TableBody>
-                </Table>
+                {/* Mobile: Cards Nativos */}
+                <div className="md:hidden p-3 space-y-2.5 bg-slate-50/20">
+                  {group.transactions.map((tx) => renderTransactionCard(tx))}
+                </div>
+
+                {/* Desktop: Tabela Analítica */}
+                <div className="hidden md:block overflow-x-auto">
+                  <Table>
+                    <TableHeader>
+                      <TableRow className="bg-slate-50/30 text-[11px] uppercase tracking-wider text-slate-500">
+                        <TableHead className="w-[120px]">Data</TableHead>
+                        <TableHead>Descrição</TableHead>
+                        <TableHead>Categoria</TableHead>
+                        <TableHead>Forma</TableHead>
+                        <TableHead>Status</TableHead>
+                        <TableHead className="text-right">Valor</TableHead>
+                        <TableHead className="w-[60px] text-center">Ações</TableHead>
+                      </TableRow>
+                    </TableHeader>
+                    <TableBody>
+                      {group.transactions.map((tx) => renderTransactionRow(tx))}
+                    </TableBody>
+                  </Table>
+                </div>
               </div>
             ))}
           </div>
         ) : (
           /* Visão em Ranking Corrido (quando ordenado por Maior/Menor Valor) */
-          <div className="overflow-x-auto">
-            <Table>
-              <TableHeader>
-                <TableRow className="bg-slate-50/50 text-[11px] uppercase tracking-wider text-slate-500">
-                  <TableHead className="w-[120px]">Data</TableHead>
-                  <TableHead>Descrição</TableHead>
-                  <TableHead>Categoria</TableHead>
-                  <TableHead>Forma</TableHead>
-                  <TableHead>Status</TableHead>
-                  <TableHead className="text-right">Valor</TableHead>
-                  <TableHead className="w-[60px] text-center">Ações</TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {filteredAndSortedTransactions.map((tx) => renderTransactionRow(tx))}
-              </TableBody>
-            </Table>
+          <div>
+            {/* Mobile: Cards Nativos */}
+            <div className="md:hidden p-3 space-y-2.5 bg-slate-50/20">
+              {filteredAndSortedTransactions.map((tx) => renderTransactionCard(tx))}
+            </div>
+
+            {/* Desktop: Tabela Analítica */}
+            <div className="hidden md:block overflow-x-auto">
+              <Table>
+                <TableHeader>
+                  <TableRow className="bg-slate-50/50 text-[11px] uppercase tracking-wider text-slate-500">
+                    <TableHead className="w-[120px]">Data</TableHead>
+                    <TableHead>Descrição</TableHead>
+                    <TableHead>Categoria</TableHead>
+                    <TableHead>Forma</TableHead>
+                    <TableHead>Status</TableHead>
+                    <TableHead className="text-right">Valor</TableHead>
+                    <TableHead className="w-[60px] text-center">Ações</TableHead>
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  {filteredAndSortedTransactions.map((tx) => renderTransactionRow(tx))}
+                </TableBody>
+              </Table>
+            </div>
           </div>
         )}
       </div>

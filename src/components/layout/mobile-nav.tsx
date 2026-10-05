@@ -23,11 +23,11 @@ export function MobileNavBar() {
   return (
     <nav
       aria-label="Navegação Inferior Mobile"
-      className="lg:hidden fixed bottom-0 left-0 right-0 z-40 bg-white/95 backdrop-blur-md border-t border-slate-200/80 shadow-[0_-4px_20px_rgba(0,0,0,0.06)] px-3 pb-[env(safe-area-inset-bottom,0px)]"
+      className="lg:hidden fixed bottom-0 left-0 right-0 z-40 bg-white/95 backdrop-blur-md border-t border-slate-200/80 shadow-[0_-4px_20px_rgba(0,0,0,0.06)] px-1 sm:px-3 pb-[calc(env(safe-area-inset-bottom,0px)+2px)]"
     >
-      <div className="flex items-center justify-around h-16 max-w-lg mx-auto relative">
+      <div className="flex items-center justify-around h-16 max-w-lg mx-auto relative px-1">
         {/* Itens da Esquerda (Dashboard, Extrato) */}
-        <div className="flex items-center justify-around flex-1">
+        <div className="flex items-center justify-around flex-1 min-w-0">
           {LEFT_NAV_ITEMS.map((item) => {
             const Icon = item.icon;
             const isActive = pathname === item.href;
@@ -37,7 +37,7 @@ export function MobileNavBar() {
                 key={item.href}
                 href={item.href}
                 className={cn(
-                  "flex flex-col items-center justify-center py-1 px-2 min-w-[56px] text-[11px] font-medium transition-colors",
+                  "flex flex-col items-center justify-center py-1 px-1 flex-1 min-w-0 text-[10px] sm:text-[11px] font-medium transition-colors select-none",
                   isActive
                     ? "text-slate-900 font-semibold"
                     : "text-slate-500 hover:text-slate-900"
@@ -45,27 +45,27 @@ export function MobileNavBar() {
               >
                 <Icon
                   className={cn(
-                    "h-5 w-5 mb-0.5 transition-colors",
+                    "h-4 w-4 sm:h-5 sm:w-5 mb-0.5 transition-colors shrink-0",
                     isActive ? "text-slate-900" : "text-slate-400"
                   )}
                 />
-                <span>{item.label}</span>
+                <span className="truncate max-w-full text-center">{item.label}</span>
               </Link>
             );
           })}
         </div>
 
         {/* Botões Centrais Flutuantes (+ Receita e - Despesa) */}
-        <div className="flex items-center gap-2 px-1 shrink-0 -translate-y-3.5">
+        <div className="flex items-center gap-1.5 sm:gap-2 px-1 shrink-0 -translate-y-3">
           {/* Botão Nova Receita (+) */}
           <button
             type="button"
             onClick={() => openModal({ defaultType: "income" })}
             title="Nova Receita (+)"
             aria-label="Nova Receita"
-            className="h-11 w-11 rounded-full bg-teal-600 hover:bg-teal-700 active:scale-95 text-white flex items-center justify-center shadow-md shadow-teal-600/30 border-2 border-white transition-all cursor-pointer"
+            className="h-10 w-10 sm:h-11 sm:w-11 rounded-full bg-teal-600 hover:bg-teal-700 active:scale-95 text-white flex items-center justify-center shadow-md shadow-teal-600/30 border-2 border-white transition-all cursor-pointer"
           >
-            <Plus className="h-5 w-5 stroke-[2.5]" />
+            <Plus className="h-4 w-4 sm:h-5 sm:w-5 stroke-[2.5]" />
           </button>
 
           {/* Botão Nova Despesa (-) */}
@@ -74,14 +74,14 @@ export function MobileNavBar() {
             onClick={() => openModal({ defaultType: "expense" })}
             title="Nova Despesa (-)"
             aria-label="Nova Despesa"
-            className="h-11 w-11 rounded-full bg-rose-500 hover:bg-rose-600 active:scale-95 text-white flex items-center justify-center shadow-md shadow-rose-500/30 border-2 border-white transition-all cursor-pointer"
+            className="h-10 w-10 sm:h-11 sm:w-11 rounded-full bg-rose-500 hover:bg-rose-600 active:scale-95 text-white flex items-center justify-center shadow-md shadow-rose-500/30 border-2 border-white transition-all cursor-pointer"
           >
-            <Minus className="h-5 w-5 stroke-[2.5]" />
+            <Minus className="h-4 w-4 sm:h-5 sm:w-5 stroke-[2.5]" />
           </button>
         </div>
 
         {/* Itens da Direita (Orçamento, Relatórios) */}
-        <div className="flex items-center justify-around flex-1">
+        <div className="flex items-center justify-around flex-1 min-w-0">
           {RIGHT_NAV_ITEMS.map((item) => {
             const Icon = item.icon;
             const isActive = pathname === item.href;
@@ -91,7 +91,7 @@ export function MobileNavBar() {
                 key={item.href}
                 href={item.href}
                 className={cn(
-                  "flex flex-col items-center justify-center py-1 px-2 min-w-[56px] text-[11px] font-medium transition-colors",
+                  "flex flex-col items-center justify-center py-1 px-1 flex-1 min-w-0 text-[10px] sm:text-[11px] font-medium transition-colors select-none",
                   isActive
                     ? "text-slate-900 font-semibold"
                     : "text-slate-500 hover:text-slate-900"
@@ -99,11 +99,11 @@ export function MobileNavBar() {
               >
                 <Icon
                   className={cn(
-                    "h-5 w-5 mb-0.5 transition-colors",
+                    "h-4 w-4 sm:h-5 sm:w-5 mb-0.5 transition-colors shrink-0",
                     isActive ? "text-slate-900" : "text-slate-400"
                   )}
                 />
-                <span>{item.label}</span>
+                <span className="truncate max-w-full text-center">{item.label}</span>
               </Link>
             );
           })}

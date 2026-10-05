@@ -150,12 +150,15 @@ export function TransactionModal() {
 
   return (
     <Sheet open={isOpen} onOpenChange={(open) => !open && closeModal()}>
-      <SheetContent side="right" className="sm:max-w-[480px] overflow-y-auto">
+      <SheetContent side="responsive" className="overflow-y-auto px-4 sm:px-6 pb-6 pt-3 sm:pt-6">
+        {/* Drag handle pill visível apenas no mobile */}
+        <div className="mx-auto w-12 h-1.5 rounded-full bg-slate-200 sm:hidden mb-3 shrink-0" />
+
         <SheetHeader>
-          <SheetTitle className="text-xl font-bold text-slate-900">
+          <SheetTitle className="text-lg sm:text-xl font-bold text-slate-900">
             {isEditing ? "Editar Transação" : "Nova Transação"}
           </SheetTitle>
-          <SheetDescription className="text-slate-500">
+          <SheetDescription className="text-xs sm:text-sm text-slate-500">
             {isEditing
               ? "Atualize os detalhes da transação selecionada."
               : "Preencha os dados abaixo para registrar uma nova movimentação."}
