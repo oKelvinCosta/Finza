@@ -104,7 +104,7 @@ async function handleRecurringSync(request: NextRequest) {
 
     const { data: currentMonthTxs, error: currentError } = await supabase
       .from("transactions")
-      .select("id, description, amount, type, payment_method, recurrence_source_id, is_recurring, user_id")
+      .select("id, description, amount, type, payment_method, is_recurring, user_id")
       .gte("date", targetMonthStart)
       .lt("date", targetMonthEnd);
 
@@ -117,10 +117,7 @@ async function handleRecurringSync(request: NextRequest) {
     const lastDayOfTargetMonth = new Date(year, month, 0).getDate();
 
     for (const prev of prevRecurrings || []) {
-      const rootId = prev.recurrence_source_id || prev.id;
-
       const alreadyExists = currentRows.some((c) => {
-        if (c.recurrence_source_id && c.recurrence_source_id === rootId) return true;
         if (c.id === prev.id) return true;
         return (
           c.user_id === prev.user_id &&
@@ -147,7 +144,6 @@ async function handleRecurringSync(request: NextRequest) {
           payment_method: prev.payment_method,
           is_paid: false,
           is_recurring: true,
-          recurrence_source_id: rootId,
           notes: prev.notes,
           user_id: prev.user_id,
         });

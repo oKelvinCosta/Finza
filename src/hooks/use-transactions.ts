@@ -126,7 +126,7 @@ async function syncUserRecurringTransactions(
     // Buscar lançamentos existentes no mês alvo para evitar duplicações
     let currentQuery = supabase
       .from("transactions")
-      .select("id, description, amount, type, payment_method, recurrence_source_id, is_recurring, user_id")
+      .select("id, description, amount, type, payment_method, is_recurring, user_id")
       .gte("date", targetMonthStart)
       .lt("date", targetMonthEnd);
 
@@ -141,10 +141,7 @@ async function syncUserRecurringTransactions(
     const lastDayOfTargetMonth = new Date(year, month, 0).getDate();
 
     for (const prev of prevRecurrings as unknown as DbTransactionRow[]) {
-      const rootId = prev.recurrence_source_id || prev.id;
-
       const alreadyExists = existing.some((c) => {
-        if (c.recurrence_source_id && c.recurrence_source_id === rootId) return true;
         if (c.id === prev.id) return true;
         return (
           c.description === prev.description &&
@@ -170,7 +167,6 @@ async function syncUserRecurringTransactions(
           payment_method: prev.payment_method,
           is_paid: false, // Transação inicia pendente no novo mês
           is_recurring: true, // Permanece recorrente
-          recurrence_source_id: rootId,
           notes: prev.notes,
           ...(user ? { user_id: user.id } : {}),
         });
@@ -242,6 +238,12 @@ export function useCreateTransaction() {
         data: { user },
       } = await supabase.auth.getUser();
 
+      if (!user) {
+        throw new Error(
+          "Você precisa estar autenticado para cadastrar uma transação. Faça login na sua conta."
+        );
+      }
+
       const isTicket = newTx.payment_method === "ticket";
 
       const payload = {
@@ -253,9 +255,8 @@ export function useCreateTransaction() {
         payment_method: newTx.payment_method,
         is_paid: Boolean(newTx.is_paid),
         is_recurring: Boolean(newTx.is_recurring),
-        recurrence_source_id: newTx.recurrence_source_id || null,
         notes: newTx.notes?.trim() || null,
-        ...(user ? { user_id: user.id } : {}),
+        user_id: user.id,
       };
 
       const { data, error } = await supabase
@@ -265,7 +266,7 @@ export function useCreateTransaction() {
         .single();
 
       if (error) {
-        throw error;
+        throw new Error(error.message || "Erro ao salvar transação no banco de dados.");
       }
 
       return mapTransaction(data as unknown as DbTransactionRow);
@@ -283,6 +284,14 @@ export function useUpdateTransaction() {
   return useMutation({
     mutationFn: async (updatedTx: Transaction): Promise<Transaction> => {
       const supabase = createClient();
+      const {
+        data: { user },
+      } = await supabase.auth.getUser();
+
+      if (!user) {
+        throw new Error("Você precisa estar autenticado para atualizar uma transação.");
+      }
+
       const isTicket = updatedTx.payment_method === "ticket";
 
       const payload = {
@@ -294,7 +303,6 @@ export function useUpdateTransaction() {
         payment_method: updatedTx.payment_method,
         is_paid: Boolean(updatedTx.is_paid),
         is_recurring: Boolean(updatedTx.is_recurring),
-        recurrence_source_id: updatedTx.recurrence_source_id || null,
         notes: updatedTx.notes?.trim() || null,
       };
 
@@ -306,7 +314,7 @@ export function useUpdateTransaction() {
         .single();
 
       if (error) {
-        throw error;
+        throw new Error(error.message || "Erro ao atualizar transação.");
       }
 
       return mapTransaction(data as unknown as DbTransactionRow);
@@ -330,6 +338,13 @@ export function useToggleTransactionPaid() {
       is_paid: boolean;
     }): Promise<Transaction> => {
       const supabase = createClient();
+      const {
+        data: { user },
+      } = await supabase.auth.getUser();
+
+      if (!user) {
+        throw new Error("Você precisa estar autenticado para alterar o status da transação.");
+      }
 
       const { data, error } = await supabase
         .from("transactions")
@@ -339,7 +354,7 @@ export function useToggleTransactionPaid() {
         .single();
 
       if (error) {
-        throw error;
+        throw new Error(error.message || "Erro ao alternar status da transação.");
       }
 
       return mapTransaction(data as unknown as DbTransactionRow);
@@ -357,6 +372,13 @@ export function useDeleteTransaction() {
   return useMutation({
     mutationFn: async (id: string): Promise<string> => {
       const supabase = createClient();
+      const {
+        data: { user },
+      } = await supabase.auth.getUser();
+
+      if (!user) {
+        throw new Error("Você precisa estar autenticado para excluir uma transação.");
+      }
 
       const { error } = await supabase
         .from("transactions")
@@ -364,7 +386,7 @@ export function useDeleteTransaction() {
         .eq("id", id);
 
       if (error) {
-        throw error;
+        throw new Error(error.message || "Erro ao excluir transação.");
       }
 
       return id;

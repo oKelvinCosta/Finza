@@ -29,7 +29,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { CreditCard, QrCode, Tag, ChevronDown } from "lucide-react";
+import { CreditCard, QrCode, Tag, ChevronDown, Wallet } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 function getTodayFormatted(monthYear?: string): string {
@@ -108,7 +108,7 @@ export function TransactionModal() {
         amount: "" as unknown as number,
         date: getTodayFormatted(selectedMonth),
         category_id: "",
-        payment_method: "credito",
+        payment_method: defaultType === "income" ? "pix" : "credito",
         is_paid: true,
         is_recurring: false,
         notes: "",
@@ -143,8 +143,9 @@ export function TransactionModal() {
         toast.success("Transação cadastrada com sucesso!");
       }
       closeModal();
-    } catch {
-      toast.error("Ocorreu um erro ao salvar a transação.");
+    } catch (err: unknown) {
+      const message = err instanceof Error ? err.message : "Ocorreu um erro ao salvar a transação.";
+      toast.error(message);
     }
   };
 
@@ -188,6 +189,9 @@ export function TransactionModal() {
               onClick={() => {
                 setValue("type", "income");
                 setValue("category_id", "");
+                if (currentPaymentMethod === "credito") {
+                  setValue("payment_method", "pix");
+                }
               }}
               className={cn(
                 "py-2 text-sm font-semibold rounded-md transition-all cursor-pointer",
@@ -234,55 +238,93 @@ export function TransactionModal() {
             )}
           </div>
 
-          {/* Método de Pagamento: Botões Rápidos */}
+          {/* Método de Pagamento / Destino: Dinâmico por Tipo */}
           <div className="space-y-1.5">
-            <Label className="text-slate-700">Forma de Pagamento</Label>
-            <div className="grid grid-cols-3 gap-2">
-              <button
-                type="button"
-                onClick={() => setValue("payment_method", "credito")}
-                className={cn(
-                  "flex items-center justify-center gap-2 p-2.5 rounded-lg border text-sm font-medium transition-all cursor-pointer",
-                  currentPaymentMethod === "credito"
-                    ? "border-slate-900 bg-slate-900 text-white shadow-xs"
-                    : "border-slate-200 bg-white text-slate-700 hover:bg-slate-50"
-                )}
-              >
-                <CreditCard className="h-4 w-4" />
-                <span>Crédito</span>
-              </button>
+            <Label className="text-slate-700 font-medium">
+              {currentType === "income" ? "Destino" : "Forma de Pagamento"}
+            </Label>
 
-              <button
-                type="button"
-                onClick={() => setValue("payment_method", "pix")}
-                className={cn(
-                  "flex items-center justify-center gap-2 p-2.5 rounded-lg border text-sm font-medium transition-all cursor-pointer",
-                  currentPaymentMethod === "pix"
-                    ? "border-teal-700 bg-teal-600 text-white shadow-xs"
-                    : "border-slate-200 bg-white text-slate-700 hover:bg-slate-50"
-                )}
-              >
-                <QrCode className="h-4 w-4" />
-                <span>Pix</span>
-              </button>
+            {currentType === "income" ? (
+              <div className="grid grid-cols-2 gap-2">
+                <button
+                  type="button"
+                  onClick={() => setValue("payment_method", "pix")}
+                  className={cn(
+                    "flex items-center justify-center gap-2 p-2.5 rounded-lg border text-sm font-medium transition-all cursor-pointer",
+                    currentPaymentMethod === "pix"
+                      ? "border-teal-700 bg-teal-600 text-white shadow-xs"
+                      : "border-slate-200 bg-white text-slate-700 hover:bg-slate-50"
+                  )}
+                >
+                  <Wallet className="h-4 w-4" />
+                  <span>Conta Pessoal</span>
+                </button>
 
-              <button
-                type="button"
-                onClick={() => {
-                  setValue("payment_method", "ticket");
-                  setValue("category_id", "");
-                }}
-                className={cn(
-                  "flex items-center justify-center gap-2 p-2.5 rounded-lg border text-sm font-medium transition-all cursor-pointer",
-                  currentPaymentMethod === "ticket"
-                    ? "border-orange-600 bg-orange-500 text-white shadow-xs"
-                    : "border-slate-200 bg-white text-slate-700 hover:bg-slate-50"
-                )}
-              >
-                <Tag className="h-4 w-4" />
-                <span>Ticket</span>
-              </button>
-            </div>
+                <button
+                  type="button"
+                  onClick={() => {
+                    setValue("payment_method", "ticket");
+                    setValue("category_id", "");
+                  }}
+                  className={cn(
+                    "flex items-center justify-center gap-2 p-2.5 rounded-lg border text-sm font-medium transition-all cursor-pointer",
+                    currentPaymentMethod === "ticket"
+                      ? "border-orange-600 bg-orange-500 text-white shadow-xs"
+                      : "border-slate-200 bg-white text-slate-700 hover:bg-slate-50"
+                  )}
+                >
+                  <Tag className="h-4 w-4" />
+                  <span>Ticket</span>
+                </button>
+              </div>
+            ) : (
+              <div className="grid grid-cols-3 gap-2">
+                <button
+                  type="button"
+                  onClick={() => setValue("payment_method", "credito")}
+                  className={cn(
+                    "flex items-center justify-center gap-2 p-2.5 rounded-lg border text-sm font-medium transition-all cursor-pointer",
+                    currentPaymentMethod === "credito"
+                      ? "border-slate-900 bg-slate-900 text-white shadow-xs"
+                      : "border-slate-200 bg-white text-slate-700 hover:bg-slate-50"
+                  )}
+                >
+                  <CreditCard className="h-4 w-4" />
+                  <span>Crédito</span>
+                </button>
+
+                <button
+                  type="button"
+                  onClick={() => setValue("payment_method", "pix")}
+                  className={cn(
+                    "flex items-center justify-center gap-2 p-2.5 rounded-lg border text-sm font-medium transition-all cursor-pointer",
+                    currentPaymentMethod === "pix"
+                      ? "border-teal-700 bg-teal-600 text-white shadow-xs"
+                      : "border-slate-200 bg-white text-slate-700 hover:bg-slate-50"
+                  )}
+                >
+                  <QrCode className="h-4 w-4" />
+                  <span>Pix</span>
+                </button>
+
+                <button
+                  type="button"
+                  onClick={() => {
+                    setValue("payment_method", "ticket");
+                    setValue("category_id", "");
+                  }}
+                  className={cn(
+                    "flex items-center justify-center gap-2 p-2.5 rounded-lg border text-sm font-medium transition-all cursor-pointer",
+                    currentPaymentMethod === "ticket"
+                      ? "border-orange-600 bg-orange-500 text-white shadow-xs"
+                      : "border-slate-200 bg-white text-slate-700 hover:bg-slate-50"
+                  )}
+                >
+                  <Tag className="h-4 w-4" />
+                  <span>Ticket</span>
+                </button>
+              </div>
+            )}
           </div>
 
           {/* Data e Categoria (Categoria ocultada quando Método for Ticket) */}

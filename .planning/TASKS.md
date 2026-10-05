@@ -183,3 +183,22 @@ Este documento decompõe o desenvolvimento do **Finza** em tarefas atômicas seq
 - [x] **TASK-22: Automação de Transações Recorrentes (Virada de Mês)**
   - Implementar Edge Function ou job `pg_cron` no Supabase para identificar registros com `is_recurring = true` no último mês e replicá-los automaticamente no novo mês com `is_paid = false`.
   - *Critério de Aceite:* Transações recorrentes aparecem no novo mês sem intervenção manual.
+
+---
+
+### 2.2. [CR-02 & CR-03] Análise Corretiva Retroativa: UX de Receitas, RLS e Resiliência de Schema
+
+- [x] **TASK-CR03: Reformulação da Seleção de Destino de Receitas no Modal**
+  - Diferenciar as opções de pagamento entre Receitas e Despesas:
+    - Aba Receita com rótulo "Destino": opções `Conta Pessoal` (armazenado como `pix`) e `Ticket` (recarga de benefício corporativo). Omissão da opção "Crédito".
+    - Aba Despesa com rótulo "Forma de Pagamento": opções `Crédito`, `Pix` e `Ticket`.
+  - Ocultação automática de Categoria ao selecionar `Ticket` em qualquer aba.
+  - *Critério de Aceite:* Ao cadastrar receita, opções refletem a realidade financeira sem inconsistências de crédito.
+
+- [x] **TASK-CR04: Resolução de Schema Cache & Blindagem de RLS nas Mutações**
+  - Remoção da dependência da coluna externa `recurrence_source_id` nos payloads do frontend e fallback, eliminando o erro de cache de schema do PostgREST.
+  - Implementação de desduplicação de recorrências por assinatura única de transação (`user_id`, `description`, `amount`, `type`, `payment_method`, mês).
+  - Adição de guardas explícitas de autenticação (`user.id`) em todas as mutações (`useCreateTransaction`, `useUpdateTransaction`, etc.) com mensagens de erro amigáveis caso a sessão expire.
+  - Manutenção do Proxy do Next.js 16 (`src/proxy.ts`) para proteger rotas privadas e garantir redirecionamento a `/login`.
+  - *Critério de Aceite:* Operações de CRUD funcionam sem erros de RLS (401/404/406) ou inconsistências de schema.
+

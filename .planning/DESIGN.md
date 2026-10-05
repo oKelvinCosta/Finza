@@ -127,7 +127,9 @@ src/
 - **Valor**: Input com máscara monetária BRL.
 - **Descrição**: Input de texto curto.
 - **Data**: Datepicker pré-selecionado na data atual.
-- **Forma de Pagamento**: Botões em grupo de seleção única: `[ Crédito (Default) | Pix | Ticket ]`.
+- **Forma de Pagamento / Destino (Dinâmico por Tipo)**:
+  - **Aba Despesa**: Rótulo "Forma de Pagamento" com botões `[ Crédito (Default) | Pix | Ticket ]`.
+  - **Aba Receita**: Rótulo "Destino" com botões `[ Conta Pessoal (Default, armazenado como 'pix') | Ticket ]`. A opção "Crédito" é omitida em receitas.
 - **Categoria (Condicional)**:
   - Se `payment_method === 'ticket'`: o campo de categoria é **completamente ocultado** e o valor gravado é `null`.
   - Se `payment_method !== 'ticket'`: dropdown dinâmico com seleção obrigatória de categoria.
@@ -392,6 +394,18 @@ const despesasPorCategoria = personalTransactions
   .filter(t => t.type === 'expense' && Boolean(t.category_id));
 // Nota: Movimentações via Ticket NUNCA entram no consumo do orçamento nem no gráfico de categorias.
 ```
+
+### 5.3. Automação de Transações Recorrentes (Virada de Mês)
+1. **Regra de Replicação**:
+   - Transações com `is_recurring = true` no mês anterior são identificadas e replicadas para o novo mês.
+   - Toda transação replicada nasce com `is_paid = false` (pendente no novo mês) e preserva `is_recurring = true`.
+   - Se `payment_method === 'ticket'`, garante-se `category_id = null` mantendo o isolamento de Ticket.
+2. **Idempotência e Desduplicação Segura**:
+   - Para evitar duplicatas e não depender de alterações rígidas no schema remoto do Supabase, a verificação no mês alvo utiliza a assinatura única da movimentação: `(user_id, description, amount, type, payment_method, mes_alvo)`.
+3. **Mecanismos de Disparo**:
+   - **pg_cron**: Agendado para as 00:05 UTC do 1º dia de cada mês no PostgreSQL.
+   - **Edge Function & API Route**: Disponíveis para chamadas via webhook ou Vercel Cron.
+   - **Navegação Transparente**: Hook `useTransactions(selectedMonth)` executa a checagem e replicação em background no carregamento do mês, garantindo visualização imediata sem intervenção manual.
 
 ---
 

@@ -92,9 +92,11 @@ Este documento centraliza todas as regras de negócio, premissas de cálculo, re
   - **Valor**: Input com máscara monetária formatada em BRL (R$).
   - **Descrição**: Campo textual descritivo.
   - **Data**: Datepicker com a data atual pré-selecionada.
-  - **Forma de Pagamento**: Botões de seleção rápida: `Crédito` (padrão), `Pix`, `Ticket`.
+  - **Forma de Pagamento / Destino (Dinâmico por Tipo)**:
+    - **Para Despesas**: Botões de seleção com o rótulo "Forma de Pagamento": `Crédito` (padrão), `Pix` e `Ticket`.
+    - **Para Receitas**: Botões de seleção com o rótulo "Destino": `Conta Pessoal` (padrão, com ícone de carteira e armazenado no banco como `pix`) e `Ticket` (recarga de benefício corporativo, armazenado como `ticket`). A opção "Crédito" é omitida em receitas por inconsistência conceitual.
   - **Categoria**: Dropdown/Select alimentado pelas categorias cadastradas (categorias padrão da Fase 1: **Alimentação**, **Lazer**, **Dev. Pessoal**, **Transporte**, **Despesas**, **Oferta**, **Dízimo**, **Viagem**, além de **Salário** e **Renda Extra**).
-    - **Regra de Ocultação do Ticket**: Ao selecionar o método de pagamento `Ticket`, o campo de Categoria é completamente ocultado do formulário e o registro é salvo sem categoria (`category_id: null`).
+    - **Regra de Ocultação do Ticket**: Ao selecionar o método de pagamento/destino `Ticket`, o campo de Categoria é completamente ocultado do formulário e o registro é salvo sem categoria (`category_id: null`).
   - **Opções Avançadas (Colapsáveis)**: Os campos abaixo ficam recolhidos dentro de um acordeão/dropdown "Opções avançadas":
     - **Status de Pagamento**: Switch "Transação já realizada" (`is_paid`, padrão `true`).
     - **Recorrência**: Toggle opcional "Despesa/Receita Recorrente" (`is_recurring`).
@@ -149,6 +151,7 @@ Este documento centraliza todas as regras de negócio, premissas de cálculo, re
   - **Fase 1**: Mocks tipados em memória / Zustand / LocalStorage para teste e validação de UX.
   - **Fase 2**: PostgreSQL via Supabase com Row-Level Security e Edge Functions/pg_cron para tarefas agendadas.
 - **[RNF06] Compatibilidade de Hospedagem Vercel**: Construção estritamente aderente ao Next.js App Router, sem rotas de build bloqueantes ou dependências de runtime incompatíveis, permitindo deploy contínuo (CI/CD) com compilação `next build` limpa.
+- **[RNF07] Segurança e Autenticação Obrigatória**: Proteção de rotas privadas via Next.js Proxy (`src/proxy.ts`), redirecionando acessos não autenticados para `/login`. Mutações executam validação explícita de `auth.uid()` em conformidade com as políticas de RLS e emitem feedback de sessão amigável.
 
 ---
 
@@ -156,5 +159,5 @@ Este documento centraliza todas as regras de negócio, premissas de cálculo, re
 
 | Fase | Escopo | Status |
 | :--- | :--- | :--- |
-| **Fase 1: Frontend & Interface Mockada** | Setup Next.js, shadcn/ui, Zod Schemas, Zustand Stores, TanStack Query mocks, Dashboard, Tabela, Modal Global, Orçamento, Relatórios | **Planejado (Prioridade Imediata)** |
-| **Fase 2: Backend & Sincronização Supabase** | Schema SQL Supabase, RLS, Auth simplificado, substituição dos mocks pelos clients reais, rotina de recorrência via pg_cron/Edge Function | **Fase Seguinte** |
+| **Fase 1: Frontend & Interface Mockada** | Setup Next.js, shadcn/ui, Zod Schemas, Zustand Stores, TanStack Query mocks, Dashboard, Tabela, Modal Global, Orçamento, Relatórios | **Concluído** |
+| **Fase 2: Backend & Sincronização Supabase** | Schema SQL Supabase, RLS, Auth simplificado, substituição dos mocks pelos clients reais, rotina de recorrência via pg_cron/Edge Function/Fallback | **Concluído** |
