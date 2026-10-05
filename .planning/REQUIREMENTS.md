@@ -24,6 +24,7 @@ Este documento centraliza todas as regras de negócio, premissas de cálculo, re
 ### 2.2. Ecossistema de Carteiras (Isolamento do Ticket)
 - **Isolamento de Métodos**: A carteira **Ticket** (benefícios corporativos de alimentação/refeição) é tratada como um método isolado.
 - **Não-Contaminação**: Movimentações via Ticket **não se misturam** com as receitas e despesas da conta corrente pessoal (Crédito e Pix).
+- **Desacoplamento Total de Categorias e Orçamento**: A carteira Ticket **não possui nenhum relacionamento com categorias** (`category_id: null`). Transações com método `ticket` são estritamente excluídas do cômputo de consumo de orçamento e **nunca entram nos gráficos de distribuição por categoria** (evitando o surgimento de categorias fantasmas como "Outros" ou "Sem categoria").
 - **Sem Rolagem de Saldo no Ticket**: O saldo da carteira Ticket também obedece à regra de isolamento estrito mensal ($\text{Saldo Restante Ticket} = \text{Recargas do Mês} - \text{Gastos do Mês}$). Saldo remanescente de Ticket não passa para o mês seguinte.
 - **Visão Separada**: O Dashboard e relatórios possuem cards, métricas e cálculos dedicados para a carteira Ticket e para a carteira Pessoal.
 
@@ -33,7 +34,10 @@ Este documento centraliza todas as regras de negócio, premissas de cálculo, re
 
 ### 3.1. Navegação e Estado Global (Shell & Layout)
 - **[RF01] Navegação Global por Mês/Ano**: O sistema deve permitir ao usuário alternar o mês e ano ativo (`YYYY-MM`) no topo da aplicação, atualizando instantaneamente todas as visões (Dashboard, Transações, Orçamento e Relatório).
-- **[RF02] Gatilho Rápido de Nova Transação**: O layout global (sidebar/navbar) deve disponibilizar um botão de destaque "Nova Transação" com acesso direto ao Modal/Sheet Global em qualquer rota.
+- **[RF02] Gatilho Rápido de Nova Transação**: O layout global (sidebar no desktop) deve disponibilizar um botão de destaque "Nova Transação" com acesso direto ao Modal/Sheet Global em qualquer rota.
+- **[RF02b] Barra de Navegação Inferior Mobile & Tablet (MobileNavBar)**: Em telas menores que 1024px (mobile e tablet), o menu lateral (Sidebar) deve ser ocultado e substituído por uma barra de navegação inferior fixa com espaçamento equilibrado entre 4 abas (2 à esquerda: *Dashboard*, *Extrato*; 2 à direita: *Orçamento*, *Relatório*) e dois botões de ação circulares e flutuantes no centro:
+  - Botão `+` (Verde/Teal): abre o modal diretamente configurado para **Nova Receita**.
+  - Botão `-` (Vermelho/Rose): abre o modal diretamente configurado para **Nova Despesa**.
 - **[RF03] Navegação entre Módulos**: O sistema deve prover rotas dedicadas para:
   - `/` — Dashboard do Mês
   - `/transactions` — Tabela Geral / Extrato do Mês
@@ -51,43 +55,51 @@ Este documento centraliza todas as regras de negócio, premissas de cálculo, re
   - Calcular e exibir **Recargas/Entradas de Ticket**: soma de receitas com método `ticket`.
   - Calcular e exibir **Gastos de Ticket**: soma de despesas com método `ticket`.
   - Calcular e exibir **Saldo Restante de Ticket**: `Recargas - Gastos`.
-- **[RF06] Consumo Geral do Orçamento**: Exibir barra de progresso visual indicando a porcentagem consumida do teto mensal total orçado em relação ao total realizado no mês.
-- **[RF07] Gráficos Rápidos de Distribuição**: Exibir gráfico de distribuição visual de despesas por categoria (`shadcn/ui/chart` com Recharts).
+- **[RF06] Consumo Geral do Orçamento**: Exibir barra de progresso visual indicando a porcentagem consumida do teto mensal total orçado em relação ao total realizado no mês. **Transações com método Ticket são estritamente ignoradas no cálculo de consumo de orçamento**, refletindo 100% o consumo da conta pessoal.
+- **[RF07] Gráficos Rápidos de Distribuição**: Exibir gráfico de distribuição visual de despesas por categoria (`shadcn/ui/chart` com Recharts) considerando **exclusivamente despesas da Conta Pessoal** que possuam categoria vinculada. Transações via Ticket são totalmente omitidas desse gráfico.
 
 ---
 
 ### 3.3. Tabela Geral do Mês / Extrato (`/transactions`)
-- **[RF08] Extrato Completo do Mês Ativo**: Listar todas as transações pertencentes ao mês ativo selecionado com colunas: Data, Descrição, Categoria, Método de Pagamento, Valor, Status e Ações.
+- **[RF08] Extrato Completo e Agrupamento Semanal**:
+  - Listar transações pertencentes ao mês ativo selecionado, com ordenação padrão **decrescente por data** (`date DESC`).
+  - Agrupar visualmente as linhas por semanas (de segunda-feira a domingo).
+  - Cada cabeçalho semanal deve exibir o período e o totalizador da semana segregando gastos pessoais e Ticket (`Total: R$ X,XX • Ticket: R$ Y,YY`).
 - **[RF09] Toggle Rápido de Status**: Permitir ao usuário alternar o status da transação entre `Pago` (`is_paid = true`) e `Pendente` (`is_paid = false`) com 1 único clique diretamente na linha da tabela.
 - **[RF10] Ações em Linha (Menu de Contexto)**:
   - **Editar**: Abrir modal/sheet com os dados pré-carregados para alteração rápida de descrição, valor, categoria, data e método.
   - **Duplicar**: Clonar a transação atual para criar um novo registro facilitado.
   - **Excluir**: Excluir a transação mediante confirmação obrigatória via `AlertDialog`.
-- **[RF11] Filtros e Busca**:
+- **[RF11] Filtros, Busca e Ordenação por Valor**:
   - Busca textual em tempo real por descrição.
   - Filtro por tipo: Todos, Receita (`income`), Despesa (`expense`).
   - Filtro por categoria (select dinâmico).
   - Filtro por método de pagamento (`credito`, `pix`, `ticket`).
+  - Seletor de ordenação: "Mais recentes primeiro (Padrão)", "Mais antigas primeiro", "Maior valor" e "Menor valor". Ao ordenar por Maior/Menor valor, exibir a listagem contínua do ranking do mês.
 - **[RF12] Badges Visuais de Identificação**:
   - Verde: Receitas (`income`).
   - Vermelho: Despesas (`expense`).
-  - Laranja / Roxo: Movimentações do método `ticket`.
+  - Laranja: Movimentações do método `ticket`.
+  - Na coluna Categoria, transações de `ticket` exibem um traço neutro (`—`) por não possuírem categoria vinculada.
   - Indicador visual claro para Pago vs Pendente.
 
 ---
 
 ### 3.4. Cadastro Unificado de Transações (Modal / Sheet Global)
-- **[RF13] Abertura Centralizada**: O modal/sheet deve poder ser acionado de qualquer página via botão da navbar ou atalho.
+- **[RF13] Abertura Centralizada**: O modal/sheet deve poder ser acionado de qualquer página via botão da sidebar, botões `+` e `-` da barra inferior mobile ou atalho.
 - **[RF14] Campos do Formulário**:
   - **Tipo**: Toggle/Tabs com opções `Despesa` (selecionado por padrão) e `Receita`.
   - **Valor**: Input com máscara monetária formatada em BRL (R$).
   - **Descrição**: Campo textual descritivo.
-  - **Data**: Datepicker via `Popover` + `Calendar` com a data atual pré-selecionada.
-  - **Categoria**: Dropdown/Select alimentado pelas categorias cadastradas (na Fase 1, são fornecidas as categorias padrão pré-cadastradas pelo usuário: **Lazer**, **Dev. Pessoal**, **Transporte**, **Despesas**, **Ticket**, **Oferta**, **Dízimo**, **Viagem**, além de categorias de receita como **Salário** e **Renda Extra**; o CRUD completo de criação de novas categorias é delegado para a Fase 2).
+  - **Data**: Datepicker com a data atual pré-selecionada.
   - **Forma de Pagamento**: Botões de seleção rápida: `Crédito` (padrão), `Pix`, `Ticket`.
-  - **Status de Pagamento**: Switch/Checkbox "Transação já realizada" (`is_paid`), marcado por padrão (`true`).
-  - **Recorrência**: Toggle opcional "Despesa/Receita Recorrente" (`is_recurring`), para indicar replicação em meses futuros.
-  - **Observações**: Campo opcional de texto para notas adicionais.
+  - **Categoria**: Dropdown/Select alimentado pelas categorias cadastradas (categorias padrão da Fase 1: **Alimentação**, **Lazer**, **Dev. Pessoal**, **Transporte**, **Despesas**, **Oferta**, **Dízimo**, **Viagem**, além de **Salário** e **Renda Extra**).
+    - **Regra de Ocultação do Ticket**: Ao selecionar o método de pagamento `Ticket`, o campo de Categoria é completamente ocultado do formulário e o registro é salvo sem categoria (`category_id: null`).
+  - **Opções Avançadas (Colapsáveis)**: Os campos abaixo ficam recolhidos dentro de um acordeão/dropdown "Opções avançadas":
+    - **Status de Pagamento**: Switch "Transação já realizada" (`is_paid`, padrão `true`).
+    - **Recorrência**: Toggle opcional "Despesa/Receita Recorrente" (`is_recurring`).
+    - **Observações**: Campo opcional de texto para notas adicionais.
+    - *Comportamento*: Inicia recolhido na criação de novas transações; ao abrir para edição, auto-expande caso a transação seja pendente, recorrente ou possua notas preenchidas.
 - **[RF15] Validação e Feedback**:
   - Validação estrita via Zod antes do envio.
   - Fechamento do modal e feedback com `Toast` de sucesso após criação/edição.
@@ -104,16 +116,16 @@ Este documento centraliza todas as regras de negócio, premissas de cálculo, re
   - **Verde**: Consumo realizado abaixo de 75% da meta.
   - **Amarelo**: Consumo realizado entre 75% e 100% da meta.
   - **Vermelho**: Orçamento estourado (consumo > 100%).
-- **[RF19] Comparativo Planejado vs Realizado**: Exibir valores absolutos do que foi planejado, do que já foi gasto e do saldo disponível por categoria.
+- **[RF19] Comparativo Planejado vs Realizado**: Exibir valores absolutos do que foi planejado, do que já foi gasto e do saldo disponível por categoria. O total gasto consolidado no topo da página exclui categoricamente qualquer despesa via Ticket.
 
 ---
 
 ### 3.6. Relatório Inteligente (`/report`)
 - **[RF20] Métricas Automáticas do Mês**:
-  - Identificar e destacar a **Categoria de Maior Gasto**.
-  - Calcular a **Média Diária de Gastos** no mês corrente.
-  - Calcular o **Ritmo de Consumo do Ticket**: estimativa diária de consumo do saldo restante de Ticket até o final dos dias úteis/corridos do mês.
-- **[RF21] Comparativo Histórico Multimeses**: Gráfico de evolução de receitas vs despesas nos últimos 3 a 6 meses.
+  - Identificar e destacar a **Categoria de Maior Gasto** (considerando apenas despesas da Conta Pessoal).
+  - Calcular a **Média Diária de Gastos** no mês corrente para a Conta Pessoal.
+  - Calcular o **Ritmo de Consumo do Ticket**: estimativa diária de consumo do saldo restante de Ticket até o final dos dias úteis/corridos do mês em card isolado.
+- **[RF21] Comparativo Histórico Multimeses**: Gráfico de evolução de receitas vs despesas nos últimos 3 a 6 meses da Conta Pessoal.
 - **[RF22] Navegação em Abas no Relatório**: Tabs organizadas em:
   - `Visão Geral`
   - `Por Categoria`
@@ -136,6 +148,7 @@ Este documento centraliza todas as regras de negócio, premissas de cálculo, re
 - **[RNF05] Persistência em Fases**:
   - **Fase 1**: Mocks tipados em memória / Zustand / LocalStorage para teste e validação de UX.
   - **Fase 2**: PostgreSQL via Supabase com Row-Level Security e Edge Functions/pg_cron para tarefas agendadas.
+- **[RNF06] Compatibilidade de Hospedagem Vercel**: Construção estritamente aderente ao Next.js App Router, sem rotas de build bloqueantes ou dependências de runtime incompatíveis, permitindo deploy contínuo (CI/CD) com compilação `next build` limpa.
 
 ---
 

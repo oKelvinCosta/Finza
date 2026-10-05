@@ -4,6 +4,7 @@ import "./globals.css";
 import { QueryProvider } from "@/components/providers/query-provider";
 import { AppSidebar } from "@/components/layout/app-sidebar";
 import { AppHeader } from "@/components/layout/app-header";
+import { MobileNavBar } from "@/components/layout/mobile-nav";
 import { TransactionModal } from "@/components/transactions/transaction-modal";
 import { Toaster } from "@/components/ui/sonner";
 
@@ -30,11 +31,12 @@ export default function RootLayout({
             <AppSidebar />
             <div className="flex-1 flex flex-col min-w-0">
               <AppHeader />
-              <main className="flex-1 p-6 md:p-8 overflow-y-auto">
+              <main className="flex-1 p-4 sm:p-6 md:p-8 pb-28 lg:pb-8 overflow-y-auto">
                 {children}
               </main>
             </div>
           </div>
+          <MobileNavBar />
           <TransactionModal />
           <Toaster position="top-right" />
         </QueryProvider>

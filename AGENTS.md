@@ -17,6 +17,7 @@ Sua prioridade máxima é transformar os documentos de especificação em códig
 2. **Isolamento da Carteira Ticket**:
    - O método `ticket` representa benefícios corporativos (VR/VA) e **NUNCA** pode ser somado às receitas ou despesas da conta corrente pessoal (`pix` ou `credito`).
    - Todos os cálculos, cards e visões do Dashboard devem manter a segregação estrita entre Carteira Pessoal e Carteira Ticket.
+   - **Desacoplamento Total de Categorias e Orçamento**: A carteira Ticket não possui qualquer relacionamento com categorias (`category_id: null`). Transações de Ticket **NUNCA** entram no card "Consumo do Orçamento", na página `/budget`, nem no gráfico de "Distribuição de Despesas por Categoria" (evitando gerar fatias genéricas como "Outros").
 3. **Fidelidade à Especificação (SDD)**:
    - Antes de implementar qualquer funcionalidade, consulte:
      - [.planning/REQUIREMENTS.md](file:///c:/kelvin-code/Finza/.planning/REQUIREMENTS.md)

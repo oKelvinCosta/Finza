@@ -36,11 +36,11 @@ export default function ReportsPage() {
   const { data: monthTransactions = [] } = useTransactions(selectedMonth);
   const { data: allTransactions = [] } = useAllTransactions();
 
-  // 1. Categoria onde mais gastou no mês
+  // 1. Categoria onde mais gastou no mês (estritamente despesas pessoais com categoria)
   const categoryExpenses = useMemo(() => {
     const map = new Map<string, { name: string; amount: number; color: string }>();
     monthTransactions
-      .filter((t) => t.type === "expense")
+      .filter((t) => t.type === "expense" && t.payment_method !== "ticket" && Boolean(t.category_id))
       .forEach((t) => {
         const name = t.category?.name || "Sem categoria";
         const color = t.category?.color || "#64748b";
@@ -52,9 +52,9 @@ export default function ReportsPage() {
 
   const topCategory = categoryExpenses[0] || null;
 
-  // 2. Média diária de gastos
+  // 2. Média diária de gastos (conta pessoal)
   const totalDespesasMes = monthTransactions
-    .filter((t) => t.type === "expense")
+    .filter((t) => t.type === "expense" && t.payment_method !== "ticket")
     .reduce((acc, t) => acc + Number(t.amount), 0);
 
   const [year, month] = selectedMonth.split("-").map(Number);
@@ -84,20 +84,22 @@ export default function ReportsPage() {
       ? ticketSaldoRestante
       : 0;
 
-  // 4. Histórico Multimeses (últimos 6 meses)
+  // 4. Histórico Multimeses (últimos 6 meses da conta pessoal)
   const historyData = useMemo(() => {
     const monthsMap = new Map<string, { month: string; income: number; expense: number }>();
 
-    allTransactions.forEach((t) => {
-      const m = t.date.substring(0, 7); // 'YYYY-MM'
-      const cur = monthsMap.get(m) || { month: m, income: 0, expense: 0 };
-      if (t.type === "income") {
-        cur.income += Number(t.amount);
-      } else {
-        cur.expense += Number(t.amount);
-      }
-      monthsMap.set(m, cur);
-    });
+    allTransactions
+      .filter((t) => t.payment_method !== "ticket")
+      .forEach((t) => {
+        const m = t.date.substring(0, 7); // 'YYYY-MM'
+        const cur = monthsMap.get(m) || { month: m, income: 0, expense: 0 };
+        if (t.type === "income") {
+          cur.income += Number(t.amount);
+        } else {
+          cur.expense += Number(t.amount);
+        }
+        monthsMap.set(m, cur);
+      });
 
     return Array.from(monthsMap.values())
       .sort((a, b) => a.month.localeCompare(b.month))

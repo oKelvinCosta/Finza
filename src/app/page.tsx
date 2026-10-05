@@ -53,22 +53,22 @@ export default function DashboardPage() {
 
   const saldoRestanteTicket = ticketEntradas - ticketGastos;
 
-  // 3. Orçamento Geral
+  // 3. Orçamento Geral (ignora Ticket categoricamente)
   const totalBudgeted = budgets.reduce((acc, b) => acc + Number(b.target_amount), 0);
-  const totalActualExpenses = transactions
+  const totalActualExpenses = personalTransactions
     .filter((t) => t.type === "expense")
     .reduce((acc, t) => acc + Number(t.amount), 0);
 
   const budgetProgress =
     totalBudgeted > 0 ? Math.round((totalActualExpenses / totalBudgeted) * 100) : 0;
 
-  // 4. Dados para o Gráfico de Distribuição por Categoria
+  // 4. Dados para o Gráfico de Distribuição por Categoria (apenas despesas pessoais com categoria)
   const categoryExpensesMap = new Map<string, { name: string; value: number; color: string }>();
 
-  transactions
-    .filter((t) => t.type === "expense")
+  personalTransactions
+    .filter((t) => t.type === "expense" && Boolean(t.category_id))
     .forEach((t) => {
-      const catName = t.category?.name || "Outros";
+      const catName = t.category?.name || "Sem categoria";
       const catColor = t.category?.color || "#64748b";
       const current = categoryExpensesMap.get(catName) || { name: catName, value: 0, color: catColor };
       categoryExpensesMap.set(catName, {

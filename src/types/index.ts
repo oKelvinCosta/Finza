@@ -14,8 +14,8 @@ export interface Transaction {
   description: string;
   amount: number;
   type: TransactionType;
-  category_id: string;
-  category?: Category;
+  category_id: string | null;
+  category?: Category | null;
   date: string; // ISO format 'YYYY-MM-DD'
   payment_method: PaymentMethod;
   is_paid: boolean;

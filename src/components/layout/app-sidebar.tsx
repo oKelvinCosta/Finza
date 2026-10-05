@@ -16,7 +16,7 @@ export function AppSidebar() {
   const pathname = usePathname();
 
   return (
-    <aside className="w-64 border-r border-slate-200/80 bg-white flex flex-col shrink-0 min-h-screen">
+    <aside className="hidden lg:flex w-64 border-r border-slate-200/80 bg-white flex-col shrink-0 min-h-screen">
       {/* Brand Header */}
       <div className="h-16 flex items-center gap-2.5 px-6 border-b border-slate-200/80">
         <div className="h-9 w-9 rounded-lg bg-slate-900 flex items-center justify-center text-white shadow-xs">

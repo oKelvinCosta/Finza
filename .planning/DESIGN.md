@@ -68,11 +68,16 @@ src/
 ## 3. Especificação das Páginas
 
 ### 3.1. Shell Global (`src/app/layout.tsx`)
-- **Barra de Navegação Superior / Lateral**:
-  - Logotipo e identidade **Finza**.
-  - Links de navegação: *Dashboard*, *Extrato*, *Orçamento*, *Relatórios*.
-  - **MonthPicker Global**: Componente conectado à store Zustand `useMonthStore`. Ao alterar o mês, todas as páginas inscritas reagem instantaneamente.
-  - **Botão "Nova Transação"**: Dispara a abertura do Modal Global via `useModalStore`.
+- **Desktop (>= 1024px)**:
+  - Sidebar lateral (`src/components/layout/app-sidebar.tsx`) com logotipo, links de navegação (*Dashboard*, *Extrato*, *Orçamento*, *Relatórios*), MonthPicker global e botão de destaque "Nova Transação".
+- **Mobile & Tablet (< 1024px)**:
+  - Sidebar ocultado.
+  - Header superior compacto com logotipo e MonthPicker global.
+  - **Barra de Navegação Inferior Fixa (`src/components/layout/mobile-nav.tsx`)**:
+    - 4 links principais igualmente espaçados (2 à esquerda: *Dashboard*, *Extrato*; 2 à direita: *Orçamento*, *Relatórios*).
+    - Centro elevado com dois botões circulares flutuantes de alto contraste:
+      - Botão `+` (Verde/Teal): abre modal com `defaultType: 'income'`.
+      - Botão `-` (Vermelho/Rose): abre modal com `defaultType: 'expense'`.
 
 ---
 
@@ -86,9 +91,10 @@ src/
   - **Gastos de Ticket**: $\sum \text{Despesas (Ticket)}$
   - **Saldo Restante de Ticket**: $\text{Entradas Ticket} - \text{Gastos Ticket}$
 - **Card Consumo do Orçamento Geral**:
-  - Barra de progresso geral de $\frac{\text{Total Despesas Realizadas}}{\text{Teto Orçado Total}} \times 100$.
+  - Barra de progresso geral de $\frac{\text{Total Despesas Realizadas (sem Ticket)}}{\text{Teto Orçado Total}} \times 100$.
+  - **Regra:** Transações de `Ticket` são estritamente excluídas do cálculo de consumo de orçamento.
 - **Gráficos Rápidos**:
-  - Gráfico de pizza / rosca via `shadcn/ui/chart` com a distribuição das despesas por categoria.
+  - Gráfico de pizza / rosca via `shadcn/ui/chart` distribuindo **exclusivamente as despesas da Conta Pessoal** por categoria (somando exatamente o valor de 'Realizado no Mês'). O método Ticket não entra no gráfico e não gera agrupamento em 'Outros'.
 
 ---
 
@@ -98,10 +104,14 @@ src/
   - Select de Tipo (Todos, Receita, Despesa).
   - Select de Categorias.
   - Select de Método de Pagamento (`Crédito`, `Pix`, `Ticket`).
+  - Select de Ordenação: "Mais recentes primeiro (Padrão)", "Mais antigas primeiro", "Maior valor", "Menor valor".
+- **Visualização e Agrupamento**:
+  - **Agrupamento Semanal (Padrão ao ordenar por data)**: Agrupa linhas em blocos de semana (segunda a domingo). Cada bloco tem um cabeçalho resumindo: período da semana e totais de gastos segregados (`Total: R$ X,XX • Ticket: R$ Y,YY`).
+  - **Ranking Corrido (ao ordenar por valor)**: Lista todas as transações do mês do maior para o menor (ou vice-versa) em lista única.
 - **Tabela de Dados (shadcn/ui `Table`)**:
   - **Data**: Formatada em `DD/MM/YYYY`.
   - **Descrição**: Texto com destaque visual.
-  - **Categoria**: Nome da categoria com dot colorido.
+  - **Categoria**: Nome da categoria com dot colorido. Para transações com método `Ticket`, exibe um traço neutro (`—`).
   - **Método**: Badge estilizado (Crédito, Pix, Ticket).
   - **Valor**: Formatado em BRL (`R$ 0,00`), verde para receitas e vermelho para despesas.
   - **Status (Toggle Rápido)**: 1 clique na célula alterna `Pago` $\leftrightarrow$ `Pendente` (executa mutação otimista).
@@ -113,16 +123,21 @@ src/
 ---
 
 ### 3.4. Modal Global de Transação (Sheet / Dialog)
-- **Tipo de Registro**: Tabs estilizadas `[ Despesa | Receita ]` (Despesa marcada por padrão).
+- **Tipo de Registro**: Tabs estilizadas `[ Despesa | Receita ]`.
 - **Valor**: Input com máscara monetária BRL.
 - **Descrição**: Input de texto curto.
-- **Data**: Datepicker via `Popover` + `Calendar` (pré-selecionada a data de hoje).
-- **Categoria**: `Select` dinâmico carregando as categorias ativas.
-- **Forma de Pagamento**: Botões em grupo de seleção única:
-  - `[ Crédito (Default) | Pix | Ticket ]`
-- **Status da Transação**: Switch "Transação já realizada" (`is_paid`, default `true`).
-- **Recorrência**: Switch "Despesa/Receita Recorrente" (`is_recurring`, default `false`).
-- **Observações**: Textarea opcional.
+- **Data**: Datepicker pré-selecionado na data atual.
+- **Forma de Pagamento**: Botões em grupo de seleção única: `[ Crédito (Default) | Pix | Ticket ]`.
+- **Categoria (Condicional)**:
+  - Se `payment_method === 'ticket'`: o campo de categoria é **completamente ocultado** e o valor gravado é `null`.
+  - Se `payment_method !== 'ticket'`: dropdown dinâmico com seleção obrigatória de categoria.
+- **Opções Avançadas (Acordeão / Colapsável)**:
+  - Botão gatilho: "Opções avançadas" com ícone de Chevron.
+  - Conteúdo recolhido:
+    - **Status da Transação**: Switch "Transação já realizada" (`is_paid`, default `true`).
+    - **Recorrência**: Switch "Despesa/Receita Recorrente" (`is_recurring`, default `false`).
+    - **Observações**: Input de texto opcional.
+  - *Comportamento*: Inicia recolhido ao criar nova transação; expande automaticamente na edição caso a transação seja pendente, recorrente ou tenha observações.
 - **Ação de Salvar**: Validação com Zod, mutação assíncrona, toast de sucesso e `queryClient.invalidateQueries`.
 
 ---
@@ -183,8 +198,8 @@ export interface Transaction {
   description: string;
   amount: number;
   type: TransactionType;
-  category_id: string;
-  category?: Category;
+  category_id: string | null;
+  category?: Category | null;
   date: string; // ISO date 'YYYY-MM-DD'
   payment_method: PaymentMethod;
   is_paid: boolean;
@@ -225,28 +240,37 @@ export interface MonthSummary {
 ```typescript
 import { z } from "zod";
 
-export const transactionFormSchema = z.object({
-  description: z.string().min(2, "A descrição deve ter pelo menos 2 caracteres"),
-  amount: z.coerce.number().positive("O valor deve ser maior que zero"),
-  type: z.enum(["income", "expense"], {
-    required_error: "Selecione o tipo da transação",
-  }),
-  category_id: z.string().uuid("Selecione uma categoria válida"),
-  date: z.date({
-    required_error: "Selecione uma data",
-  }),
-  payment_method: z.enum(["credito", "pix", "ticket"], {
-    required_error: "Selecione a forma de pagamento",
-  }),
-  is_paid: z.boolean().default(true),
-  is_recurring: z.boolean().default(false),
-  notes: z.string().optional(),
-});
+export const transactionFormSchema = z
+  .object({
+    description: z.string().min(2, "A descrição deve ter pelo menos 2 caracteres"),
+    amount: z.coerce.number().positive("O valor deve ser maior que zero"),
+    type: z.enum(["income", "expense"], {
+      required_error: "Selecione o tipo da transação",
+    }),
+    category_id: z.string().optional().nullable(),
+    date: z.string().min(1, "Selecione uma data"),
+    payment_method: z.enum(["credito", "pix", "ticket"], {
+      required_error: "Selecione a forma de pagamento",
+    }),
+    is_paid: z.boolean().default(true),
+    is_recurring: z.boolean().default(false),
+    notes: z.string().optional().nullable(),
+  })
+  .superRefine((data, ctx) => {
+    // Se não for Ticket, categoria é obrigatória
+    if (data.payment_method !== "ticket" && (!data.category_id || data.category_id.trim() === "")) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        message: "Selecione uma categoria válida",
+        path: ["category_id"],
+      });
+    }
+  });
 
 export type TransactionFormValues = z.infer<typeof transactionFormSchema>;
 
 export const budgetFormSchema = z.object({
-  category_id: z.string().uuid(),
+  category_id: z.string().min(1, "Categoria obrigatória"),
   month_year: z.string().regex(/^\d{4}-\d{2}$/, "Formato inválido (YYYY-MM)"),
   target_amount: z.coerce.number().min(0, "O teto de gastos não pode ser negativo"),
 });
@@ -271,13 +295,13 @@ CREATE TABLE categories (
   created_at TIMESTAMPTZ DEFAULT now()
 );
 
--- 2. Transações
+-- 2. Transações (category_id é NULLABLE para suportar Ticket)
 CREATE TABLE transactions (
   id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
   description TEXT NOT NULL,
   amount NUMERIC(12, 2) NOT NULL,
   type TEXT NOT NULL CHECK (type IN ('income', 'expense')),
-  category_id UUID NOT NULL REFERENCES categories(id) ON DELETE RESTRICT,
+  category_id UUID REFERENCES categories(id) ON DELETE SET NULL,
   date DATE NOT NULL DEFAULT CURRENT_DATE,
   payment_method TEXT NOT NULL DEFAULT 'credito' CHECK (payment_method IN ('credito', 'pix', 'ticket')),
   is_paid BOOLEAN NOT NULL DEFAULT TRUE,
@@ -306,18 +330,19 @@ CREATE INDEX idx_budgets_month_year ON budgets(month_year);
 
 As seguintes categorias compõem o seed inicial de dados da aplicação:
 - **Despesas**:
-  - `Lazer` (Cor Slate/Teal suave)
-  - `Dev. Pessoal` (Cor Slate/Indigo)
-  - `Transporte` (Cor Slate/Amber)
-  - `Despesas` (Despesas gerais / fixas, cor Slate)
-  - `Ticket` (Alimentação/Refeição corporativo, cor orange)
-  - `Oferta` (Doações/ofertas, cor Teal)
-  - `Dízimo` (Contribuição, cor Teal)
-  - `Viagem` (Férias/deslocamento, cor Sky/Rose)
+  - `Alimentação` (Mercado, delivery e refeições pessoais, cor Amber `#f59e0b`)
+  - `Lazer` (Cor Slate/Teal suave `#0d9488`)
+  - `Dev. Pessoal` (Cor Slate/Indigo `#6366f1`)
+  - `Transporte` (Cor Slate/Amber `#eab308`)
+  - `Despesas` (Despesas gerais / fixas, cor Slate `#64748b`)
+  - `Oferta` (Doações/ofertas, cor Teal `#14b8a6`)
+  - `Dízimo` (Contribuição, cor Teal `#0f766e`)
+  - `Viagem` (Férias/deslocamento, cor Sky/Rose `#f43f5e`)
 - **Receitas**:
-  - `Salário` (Renda principal, cor Teal)
-  - `Renda Extra` (Freelances/investimentos, cor Emerald)
-  - `Benefício Ticket` (Recarga mensal do benefício VR/VA, cor orange)
+  - `Salário` (Renda principal, cor Teal `#0d9488`)
+  - `Renda Extra` (Freelances/investimentos, cor Emerald `#10b981`)
+
+*(Nota: Ticket não é uma categoria; é exclusivamente uma forma de pagamento/carteira independente).*
 
 ---
 
@@ -357,6 +382,15 @@ const ticketGastos = ticketTransactions
   .reduce((acc, t) => acc + Number(t.amount), 0);
 
 const saldoRestanteTicket = ticketEntradas - ticketGastos;
+
+// 3. Orçamento e Gráficos de Categorias (Desacoplamento Estrito de Ticket)
+const totalRealizadoOrcamento = personalTransactions
+  .filter(t => t.type === 'expense')
+  .reduce((acc, t) => acc + Number(t.amount), 0);
+
+const despesasPorCategoria = personalTransactions
+  .filter(t => t.type === 'expense' && Boolean(t.category_id));
+// Nota: Movimentações via Ticket NUNCA entram no consumo do orçamento nem no gráfico de categorias.
 ```
 
 ---

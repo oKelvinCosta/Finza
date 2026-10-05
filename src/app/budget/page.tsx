@@ -42,13 +42,15 @@ export default function BudgetPage() {
   // Filtra apenas categorias de despesa
   const expenseCategories = categories.filter((c) => c.type === "expense");
 
-  // Mapeamento dos gastos realizados no mês por categoria
+  // Mapeamento dos gastos realizados no mês por categoria (ignora Ticket)
   const actualByCategory = new Map<string, number>();
   transactions
-    .filter((t) => t.type === "expense")
+    .filter((t) => t.type === "expense" && t.payment_method !== "ticket" && Boolean(t.category_id))
     .forEach((t) => {
-      const cur = actualByCategory.get(t.category_id) || 0;
-      actualByCategory.set(t.category_id, cur + Number(t.amount));
+      if (t.category_id) {
+        const cur = actualByCategory.get(t.category_id) || 0;
+        actualByCategory.set(t.category_id, cur + Number(t.amount));
+      }
     });
 
   // Salvar alteração de orçamento individual
@@ -92,10 +94,10 @@ export default function BudgetPage() {
     }
   };
 
-  // Totais consolidados
+  // Totais consolidados (ignora Ticket categoricamente)
   const totalBudgeted = budgets.reduce((acc, b) => acc + Number(b.target_amount), 0);
   const totalSpent = transactions
-    .filter((t) => t.type === "expense")
+    .filter((t) => t.type === "expense" && t.payment_method !== "ticket")
     .reduce((acc, t) => acc + Number(t.amount), 0);
 
   const overallProgress = totalBudgeted > 0 ? Math.round((totalSpent / totalBudgeted) * 100) : 0;

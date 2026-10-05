@@ -2,11 +2,11 @@ import { Category, Transaction, Budget } from "@/types";
 
 export const INITIAL_CATEGORIES: Category[] = [
   // Despesas
+  { id: "cat-alimentacao", name: "Alimentação", type: "expense", color: "#f59e0b", created_at: new Date().toISOString() },
   { id: "cat-lazer", name: "Lazer", type: "expense", color: "#0d9488", created_at: new Date().toISOString() },
   { id: "cat-dev-pessoal", name: "Dev. Pessoal", type: "expense", color: "#6366f1", created_at: new Date().toISOString() },
-  { id: "cat-transporte", name: "Transporte", type: "expense", color: "#f59e0b", created_at: new Date().toISOString() },
+  { id: "cat-transporte", name: "Transporte", type: "expense", color: "#3b82f6", created_at: new Date().toISOString() },
   { id: "cat-despesas", name: "Despesas", type: "expense", color: "#64748b", created_at: new Date().toISOString() },
-  { id: "cat-ticket", name: "Ticket", type: "expense", color: "#8b5cf6", created_at: new Date().toISOString() },
   { id: "cat-oferta", name: "Oferta", type: "expense", color: "#14b8a6", created_at: new Date().toISOString() },
   { id: "cat-dizimo", name: "Dízimo", type: "expense", color: "#0f766e", created_at: new Date().toISOString() },
   { id: "cat-viagem", name: "Viagem", type: "expense", color: "#f43f5e", created_at: new Date().toISOString() },
@@ -14,7 +14,6 @@ export const INITIAL_CATEGORIES: Category[] = [
   // Receitas
   { id: "cat-salario", name: "Salário", type: "income", color: "#0d9488", created_at: new Date().toISOString() },
   { id: "cat-renda-extra", name: "Renda Extra", type: "income", color: "#10b981", created_at: new Date().toISOString() },
-  { id: "cat-beneficio-ticket", name: "Benefício Ticket", type: "income", color: "#8b5cf6", created_at: new Date().toISOString() },
 ];
 
 function getCurrentAndPrevMonths() {
@@ -63,13 +62,13 @@ export function generateInitialData() {
       created_at: new Date().toISOString(),
     },
 
-    // Mês Atual - Receita Ticket (Isolada)
+    // Mês Atual - Receita Ticket (Isolada, sem categoria)
     {
       id: "tx-3",
       description: "Recarga Benefício VR/VA",
       amount: 900.0,
       type: "income",
-      category_id: "cat-beneficio-ticket",
+      category_id: null,
       date: `${curY}-${curM}-01`,
       payment_method: "ticket",
       is_paid: true,
@@ -157,14 +156,27 @@ export function generateInitialData() {
       notes: null,
       created_at: new Date().toISOString(),
     },
+    {
+      id: "tx-12",
+      description: "Supermercado (Compra Pessoal)",
+      amount: 450.0,
+      type: "expense",
+      category_id: "cat-alimentacao",
+      date: `${curY}-${curM}-14`,
+      payment_method: "credito",
+      is_paid: true,
+      is_recurring: false,
+      notes: "Compras do mês",
+      created_at: new Date().toISOString(),
+    },
 
-    // Mês Atual - Despesas Ticket (Isolada)
+    // Mês Atual - Despesas Ticket (Isolada, sem categoria)
     {
       id: "tx-10",
       description: "Supermercado Semanal (VR)",
       amount: 320.0,
       type: "expense",
-      category_id: "cat-ticket",
+      category_id: null,
       date: `${curY}-${curM}-08`,
       payment_method: "ticket",
       is_paid: true,
@@ -177,7 +189,7 @@ export function generateInitialData() {
       description: "Almoços no Trabalho",
       amount: 210.0,
       type: "expense",
-      category_id: "cat-ticket",
+      category_id: null,
       date: `${curY}-${curM}-16`,
       payment_method: "ticket",
       is_paid: true,
@@ -189,6 +201,7 @@ export function generateInitialData() {
 
   const budgets: Budget[] = [
     // Metas do Mês Atual
+    { id: `b-${currentMonth}-alimentacao`, category_id: "cat-alimentacao", month_year: currentMonth, target_amount: 800.0, created_at: new Date().toISOString() },
     { id: `b-${currentMonth}-lazer`, category_id: "cat-lazer", month_year: currentMonth, target_amount: 400.0, created_at: new Date().toISOString() },
     { id: `b-${currentMonth}-dev-pessoal`, category_id: "cat-dev-pessoal", month_year: currentMonth, target_amount: 300.0, created_at: new Date().toISOString() },
     { id: `b-${currentMonth}-transporte`, category_id: "cat-transporte", month_year: currentMonth, target_amount: 350.0, created_at: new Date().toISOString() },
@@ -196,9 +209,9 @@ export function generateInitialData() {
     { id: `b-${currentMonth}-dizimo`, category_id: "cat-dizimo", month_year: currentMonth, target_amount: 650.0, created_at: new Date().toISOString() },
     { id: `b-${currentMonth}-oferta`, category_id: "cat-oferta", month_year: currentMonth, target_amount: 200.0, created_at: new Date().toISOString() },
     { id: `b-${currentMonth}-viagem`, category_id: "cat-viagem", month_year: currentMonth, target_amount: 500.0, created_at: new Date().toISOString() },
-    { id: `b-${currentMonth}-ticket`, category_id: "cat-ticket", month_year: currentMonth, target_amount: 900.0, created_at: new Date().toISOString() },
 
     // Metas do Mês Anterior (Para testar o botão 'Copiar do Mês Anterior')
+    { id: `b-${prevMonth}-alimentacao`, category_id: "cat-alimentacao", month_year: prevMonth, target_amount: 750.0, created_at: new Date().toISOString() },
     { id: `b-${prevMonth}-lazer`, category_id: "cat-lazer", month_year: prevMonth, target_amount: 450.0, created_at: new Date().toISOString() },
     { id: `b-${prevMonth}-dev-pessoal`, category_id: "cat-dev-pessoal", month_year: prevMonth, target_amount: 300.0, created_at: new Date().toISOString() },
     { id: `b-${prevMonth}-transporte`, category_id: "cat-transporte", month_year: prevMonth, target_amount: 300.0, created_at: new Date().toISOString() },
@@ -210,9 +223,9 @@ export function generateInitialData() {
 
 // Helpers de Persistência no LocalStorage
 const STORAGE_KEYS = {
-  TRANSACTIONS: "finza_transactions_v1",
-  BUDGETS: "finza_budgets_v1",
-  CATEGORIES: "finza_categories_v1",
+  TRANSACTIONS: "finza_transactions_v2",
+  BUDGETS: "finza_budgets_v2",
+  CATEGORIES: "finza_categories_v2",
 };
 
 export function getStoredData() {

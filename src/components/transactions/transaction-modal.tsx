@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import { useForm, Controller } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { transactionFormSchema, TransactionFormValues } from "@/lib/validations/transaction";
@@ -29,7 +29,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { CreditCard, QrCode, Tag, Check } from "lucide-react";
+import { CreditCard, QrCode, Tag, ChevronDown } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 function getTodayFormatted(monthYear?: string): string {
@@ -52,6 +52,7 @@ export function TransactionModal() {
   const updateTx = useUpdateTransaction();
 
   const isEditing = Boolean(editingTransaction);
+  const [showAdvanced, setShowAdvanced] = useState(false);
 
   const {
     register,
@@ -89,12 +90,17 @@ export function TransactionModal() {
         description: editingTransaction.description,
         amount: editingTransaction.amount,
         date: editingTransaction.date,
-        category_id: editingTransaction.category_id,
+        category_id: editingTransaction.category_id || "",
         payment_method: editingTransaction.payment_method,
         is_paid: editingTransaction.is_paid,
         is_recurring: editingTransaction.is_recurring,
         notes: editingTransaction.notes || "",
       });
+      const hasAdvanced =
+        editingTransaction.is_paid === false ||
+        editingTransaction.is_recurring === true ||
+        Boolean(editingTransaction.notes && editingTransaction.notes.trim() !== "");
+      setShowAdvanced(hasAdvanced);
     } else {
       reset({
         type: defaultType,
@@ -107,21 +113,31 @@ export function TransactionModal() {
         is_recurring: false,
         notes: "",
       });
+      setShowAdvanced(false);
     }
   }, [editingTransaction, defaultType, selectedMonth, reset, isOpen]);
 
   const onSubmit = async (values: TransactionFormValues) => {
     try {
+      const sanitizedCategoryId =
+        values.payment_method === "ticket"
+          ? null
+          : values.category_id && values.category_id.trim() !== ""
+          ? values.category_id
+          : null;
+
       if (isEditing && editingTransaction) {
         await updateTx.mutateAsync({
           ...editingTransaction,
           ...values,
+          category_id: sanitizedCategoryId,
           notes: values.notes || null,
         });
         toast.success("Transação atualizada com sucesso!");
       } else {
         await createTx.mutateAsync({
           ...values,
+          category_id: sanitizedCategoryId,
           notes: values.notes || null,
         });
         toast.success("Transação cadastrada com sucesso!");
@@ -134,7 +150,7 @@ export function TransactionModal() {
 
   return (
     <Sheet open={isOpen} onOpenChange={(open) => !open && closeModal()}>
-      <SheetContent side="right" className="sm:max-w-[480px]">
+      <SheetContent side="right" className="sm:max-w-[480px] overflow-y-auto">
         <SheetHeader>
           <SheetTitle className="text-xl font-bold text-slate-900">
             {isEditing ? "Editar Transação" : "Nova Transação"}
@@ -146,7 +162,7 @@ export function TransactionModal() {
           </SheetDescription>
         </SheetHeader>
 
-        <form onSubmit={handleSubmit(onSubmit)} className="space-y-5 py-4">
+        <form onSubmit={handleSubmit(onSubmit)} className="space-y-4 py-4">
           {/* Alternador de Tipo: Despesa vs Receita */}
           <div className="grid grid-cols-2 gap-2 p-1 bg-slate-100 rounded-lg">
             <button
@@ -215,48 +231,6 @@ export function TransactionModal() {
             )}
           </div>
 
-          {/* Data e Categoria */}
-          <div className="grid grid-cols-2 gap-3">
-            <div className="space-y-1.5">
-              <Label htmlFor="date" className="text-slate-700">Data</Label>
-              <Input id="date" type="date" {...register("date")} />
-              {errors.date && (
-                <p className="text-xs text-rose-600">{errors.date.message}</p>
-              )}
-            </div>
-
-            <div className="space-y-1.5">
-              <Label className="text-slate-700">Categoria</Label>
-              <Controller
-                name="category_id"
-                control={control}
-                render={({ field }) => (
-                  <Select value={field.value} onValueChange={field.onChange}>
-                    <SelectTrigger>
-                      <SelectValue placeholder="Selecione" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {filteredCategories.map((c) => (
-                        <SelectItem key={c.id} value={c.id}>
-                          <div className="flex items-center gap-2">
-                            <span
-                              className="h-2.5 w-2.5 rounded-full shrink-0"
-                              style={{ backgroundColor: c.color }}
-                            />
-                            <span>{c.name}</span>
-                          </div>
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                )}
-              />
-              {errors.category_id && (
-                <p className="text-xs text-rose-600">{errors.category_id.message}</p>
-              )}
-            </div>
-          </div>
-
           {/* Método de Pagamento: Botões Rápidos */}
           <div className="space-y-1.5">
             <Label className="text-slate-700">Forma de Pagamento</Label>
@@ -291,11 +265,14 @@ export function TransactionModal() {
 
               <button
                 type="button"
-                onClick={() => setValue("payment_method", "ticket")}
+                onClick={() => {
+                  setValue("payment_method", "ticket");
+                  setValue("category_id", "");
+                }}
                 className={cn(
                   "flex items-center justify-center gap-2 p-2.5 rounded-lg border text-sm font-medium transition-all cursor-pointer",
                   currentPaymentMethod === "ticket"
-                    ? "border-indigo-700 bg-indigo-600 text-white shadow-xs"
+                    ? "border-orange-600 bg-orange-500 text-white shadow-xs"
                     : "border-slate-200 bg-white text-slate-700 hover:bg-slate-50"
                 )}
               >
@@ -305,57 +282,118 @@ export function TransactionModal() {
             </div>
           </div>
 
-          {/* Switches: Status Pago e Recorrência */}
-          <div className="space-y-3 pt-2 border-t border-slate-100">
-            <div className="flex items-center justify-between">
-              <div>
-                <Label htmlFor="is_paid" className="text-sm font-medium text-slate-800">
-                  Transação já realizada
-                </Label>
-                <p className="text-xs text-slate-500">
-                  Transações pendentes abatem do saldo do mês normalmente.
-                </p>
-              </div>
-              <Controller
-                name="is_paid"
-                control={control}
-                render={({ field }) => (
-                  <Switch
-                    id="is_paid"
-                    checked={field.value}
-                    onCheckedChange={field.onChange}
-                  />
-                )}
-              />
+          {/* Data e Categoria (Categoria ocultada quando Método for Ticket) */}
+          <div className={cn("grid gap-3", currentPaymentMethod === "ticket" ? "grid-cols-1" : "grid-cols-2")}>
+            <div className="space-y-1.5">
+              <Label htmlFor="date" className="text-slate-700">Data</Label>
+              <Input id="date" type="date" {...register("date")} />
+              {errors.date && (
+                <p className="text-xs text-rose-600">{errors.date.message}</p>
+              )}
             </div>
 
-            <div className="flex items-center justify-between">
-              <div>
-                <Label htmlFor="is_recurring" className="text-sm font-medium text-slate-800">
-                  Transação Recorrente
-                </Label>
-                <p className="text-xs text-slate-500">
-                  Replicar automaticamente nos próximos meses.
-                </p>
-              </div>
-              <Controller
-                name="is_recurring"
-                control={control}
-                render={({ field }) => (
-                  <Switch
-                    id="is_recurring"
-                    checked={field.value}
-                    onCheckedChange={field.onChange}
-                  />
+            {currentPaymentMethod !== "ticket" && (
+              <div className="space-y-1.5">
+                <Label className="text-slate-700">Categoria</Label>
+                <Controller
+                  name="category_id"
+                  control={control}
+                  render={({ field }) => (
+                    <Select value={field.value || ""} onValueChange={field.onChange}>
+                      <SelectTrigger>
+                        <SelectValue placeholder="Selecione" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {filteredCategories.map((c) => (
+                          <SelectItem key={c.id} value={c.id}>
+                            <div className="flex items-center gap-2">
+                              <span
+                                className="h-2.5 w-2.5 rounded-full shrink-0"
+                                style={{ backgroundColor: c.color }}
+                              />
+                              <span>{c.name}</span>
+                            </div>
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  )}
+                />
+                {errors.category_id && (
+                  <p className="text-xs text-rose-600">{errors.category_id.message}</p>
                 )}
-              />
-            </div>
+              </div>
+            )}
           </div>
 
-          {/* Observações */}
-          <div className="space-y-1.5">
-            <Label htmlFor="notes" className="text-slate-700">Observações (opcional)</Label>
-            <Input id="notes" placeholder="Detalhes adicionais..." {...register("notes")} />
+          {/* Opções Avançadas (Colapsáveis) */}
+          <div className="pt-2 border-t border-slate-100">
+            <button
+              type="button"
+              onClick={() => setShowAdvanced(!showAdvanced)}
+              className="flex items-center justify-between w-full py-1.5 text-xs font-semibold text-slate-500 hover:text-slate-800 transition-colors cursor-pointer"
+            >
+              <span>Opções avançadas</span>
+              <ChevronDown
+                className={cn(
+                  "h-4 w-4 text-slate-400 transition-transform duration-200",
+                  showAdvanced && "rotate-180 text-slate-700"
+                )}
+              />
+            </button>
+
+            {showAdvanced && (
+              <div className="space-y-3 pt-3">
+                <div className="flex items-center justify-between bg-slate-50 p-2.5 rounded-lg border border-slate-100">
+                  <div>
+                    <Label htmlFor="is_paid" className="text-xs font-medium text-slate-800 cursor-pointer">
+                      Transação já realizada
+                    </Label>
+                    <p className="text-[11px] text-slate-500">
+                      Despesas pendentes também abatem do saldo do mês.
+                    </p>
+                  </div>
+                  <Controller
+                    name="is_paid"
+                    control={control}
+                    render={({ field }) => (
+                      <Switch
+                        id="is_paid"
+                        checked={field.value}
+                        onCheckedChange={field.onChange}
+                      />
+                    )}
+                  />
+                </div>
+
+                <div className="flex items-center justify-between bg-slate-50 p-2.5 rounded-lg border border-slate-100">
+                  <div>
+                    <Label htmlFor="is_recurring" className="text-xs font-medium text-slate-800 cursor-pointer">
+                      Transação Recorrente
+                    </Label>
+                    <p className="text-[11px] text-slate-500">
+                      Replicar automaticamente nos próximos meses.
+                    </p>
+                  </div>
+                  <Controller
+                    name="is_recurring"
+                    control={control}
+                    render={({ field }) => (
+                      <Switch
+                        id="is_recurring"
+                        checked={field.value}
+                        onCheckedChange={field.onChange}
+                      />
+                    )}
+                  />
+                </div>
+
+                <div className="space-y-1.5">
+                  <Label htmlFor="notes" className="text-xs text-slate-700">Observações (opcional)</Label>
+                  <Input id="notes" placeholder="Detalhes adicionais..." {...register("notes")} />
+                </div>
+              </div>
+            )}
           </div>
 
           <SheetFooter className="pt-4 border-t border-slate-100">

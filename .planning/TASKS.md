@@ -75,50 +75,59 @@ Este documento decompõe o desenvolvimento do **Finza** em tarefas atômicas seq
 
 ---
 
+### 1.3b. [CR-01] Refatorações de Tipos, Schemas & Seeds (Ticket & Alimentação)
+- [x] **TASK-CR01: Ajuste de Contratos TypeScript e Schema Zod**
+  - Atualizar `src/types/index.ts` para permitir `category_id: string | null` e `category?: Category | null`.
+  - Atualizar `src/lib/validations/transaction.ts` para tornar categoria obrigatória apenas quando `payment_method !== 'ticket'`.
+  - *Critério de Aceite:* `npx tsc --noEmit` compila sem erros com `category_id` anulável.
+
+- [x] **TASK-CR02: Atualização do Dataset de Mocks (`src/lib/mock-data.ts`)**
+  - Remover categoria `Ticket` e adicionar categoria `Alimentação` (cor âmbar).
+  - Atualizar transações mockadas de método `ticket` para terem `category_id: null`.
+  - Ajustar orçamentos mockados para conter a categoria `Alimentação`.
+  - *Critério de Aceite:* Mocks refletem a nova arquitetura sem categoria Ticket.
+
+---
+
 ### 1.4. Construção dos Componentes e Telas
 
-- [ ] **TASK-11: Layout Global Shell (`src/app/layout.tsx`)**
-  - Desenvolver Sidebar/Navbar com navegação limpa entre as páginas (`/`, `/transactions`, `/budget`, `/report`).
-  - Integrar seletor global de Mês/Ano com botões prev/next e popover de seleção.
-  - Inserir botão de destaque "Nova Transação" que dispara o Sheet/Modal Global.
-  - *Critério de Aceite:* Barra fixa ou responsiva permitindo alternar rotas e meses de forma fluida.
+- [x] **TASK-11: Layout Global Shell & Mobile Navigation Bar**
+  - Desenvolver Sidebar lateral para Desktop (>= 1024px) com MonthPicker e botão "Nova Transação".
+  - Desenvolver Barra de Navegação Inferior Fixa (`MobileNavBar`) para Mobile/Tablet (< 1024px) com 4 abas e 2 botões centrais flutuantes de alto contraste:
+    - Botão circular `+` (Verde): abre modal para **Nova Receita** (`defaultType: 'income'`).
+    - Botão circular `-` (Vermelho): abre modal para **Nova Despesa** (`defaultType: 'expense'`).
+  - Header compacto mobile com logotipo e MonthPicker.
+  - *Critério de Aceite:* Transição fluida entre desktop e mobile sem quebra de layout.
 
-- [ ] **TASK-12: Modal / Sheet Global de Cadastro e Edição de Transação**
-  - Construir formulário controlado com `react-hook-form` integrado ao `transactionFormSchema`.
-  - Alternador de abas: `Despesa` (padrão) vs `Receita`.
-  - Input monetário em BRL (`R$`).
-  - Datepicker popover iniciando no dia corrente.
-  - Dropdown dinâmico de categorias.
-  - Botões de seleção rápida do método de pagamento: `[ Crédito | Pix | Ticket ]`.
-  - Switches para "Transação já realizada" (`is_paid`) e "Recorrente" (`is_recurring`).
-  - Campo de observações.
-  - *Critério de Aceite:* Submissão válida adiciona a transação, fecha o modal, emite Toast e invalida o cache.
+- [x] **TASK-12: Modal / Sheet Global de Cadastro e Edição de Transação**
+  - Construir formulário controlado com `react-hook-form` integrado ao schema Zod atualizado.
+  - Alternador de abas `Despesa` vs `Receita` respeitando o `defaultType` disparado.
+  - Ocultar campo de Categoria quando forma de pagamento for `Ticket` (`category_id` nulo).
+  - Acordeão colapsável "Opções avançadas":
+    - Contém "Transação já realizada", "Transação Recorrente" e "Observações".
+    - Inicia recolhido na criação; expande automaticamente na edição se houver valores não padrão.
+  - *Critério de Aceite:* Submissão correta tanto para transações pessoais quanto para Ticket sem categoria.
 
-- [ ] **TASK-13: Tela Dashboard do Mês (`src/app/page.tsx`)**
-  - Implementar bloco **Carteira Pessoal (Conta Corrente)**:
-    - Card Entradas (Pix + Crédito).
-    - Card Saídas (Pix + Crédito).
-    - Card Saldo Restante (Entradas - Saídas).
-  - Implementar bloco **Carteira Ticket**:
-    - Card Recarga/Entradas de Ticket.
-    - Card Gastos de Ticket.
-    - Card Saldo Restante de Ticket.
-  - Implementar card de **Consumo Geral do Orçamento** (barra de progresso).
-  - Implementar gráfico rápido de distribuição de despesas por categoria via `shadcn/ui/chart`.
-  - *Critério de Aceite:* Os cálculos de isolamento de saldos batem 100% com a regra canônica.
+- [x] **TASK-13: Tela Dashboard do Mês (`src/app/page.tsx`)**
+  - Implementar bloco **Carteira Pessoal (Conta Corrente)**: Entradas, Saídas e Saldo.
+  - Implementar bloco **Carteira Ticket**: Recargas, Gastos e Saldo Restante.
+  - Implementar card de **Consumo Geral do Orçamento** (ignorando categoricamente qualquer movimentação via Ticket).
+  - Implementar gráfico rápido de distribuição de despesas por categoria (exclusivo da Conta Pessoal, sem Ticket e sem fatia "Outros").
+  - *Critério de Aceite:* Cálculos respeitam o isolamento pessoal vs ticket, gráfico de categorias soma exatamente o valor realizado pessoal e orçamento não sofre contaminação.
 
-- [ ] **TASK-14: Tela Tabela Geral / Extrato do Mês (`src/app/transactions/page.tsx`)**
-  - Construir tabela completa das transações do mês ativo.
-  - Implementar toggle rápido de status (`Pago` $\leftrightarrow$ `Pendente`) com 1 clique direto na célula.
-  - Implementar menu de ações por linha com `DropdownMenu` (Editar, Duplicar, Excluir).
-  - Adicionar diálogo de confirmação via `AlertDialog` para exclusão.
-  - Implementar barra de filtros: busca textual por descrição, filtro por tipo (Receita/Despesa), filtro por categoria e por método (`Crédito`, `Pix`, `Ticket`).
-  - Badges visuais coloridos para status, tipo e método.
-  - *Critério de Aceite:* Filtros e buscas funcionam instantaneamente; ações de toggle e exclusão atualizam a tabela.
+- [x] **TASK-14: Tela Tabela Geral / Extrato do Mês (`src/app/transactions/page.tsx`)**
+  - Construir tabela de transações ordenada por padrão decrescente por data (`date DESC`).
+  - Agrupamento semanal (segunda a domingo) com cabeçalho de totais: `Total: R$ X,XX • Ticket: R$ Y,YY`.
+  - Filtro e ordenação: opções de ranking corrido do mês por "Maior valor" e "Menor valor".
+  - Coluna Categoria exibindo traço neutro (`—`) para transações do método `ticket`.
+  - Toggle rápido de status (`Pago` $\leftrightarrow$ `Pendente`) com 1 clique direto na célula.
+  - Menu de ações (Editar, Duplicar, Excluir com AlertDialog).
+  - *Critério de Aceite:* Agrupamento semanal, ordenação por valor e ações de linha funcionando sem erros.
 
-- [ ] **TASK-15: Tela de Orçamento do Mês (`src/app/budget/page.tsx`)**
+- [x] **TASK-15: Tela de Orçamento do Mês (`src/app/budget/page.tsx`)**
   - Listar todas as categorias de despesa disponíveis.
   - Campo editável de valor planejado (`target_amount`) por categoria.
+  - Total geral consumido (`totalSpent`) ignora categoricamente despesas do método Ticket.
   - Diálogo de ação "Copiar do Mês Anterior" com duas opções:
     - *Sobrescrever tudo*: clona todas as metas substituindo o mês atual.
     - *Preencher apenas vazias*: clona apenas categorias que ainda não possuem teto definido.
@@ -127,14 +136,15 @@ Este documento decompõe o desenvolvimento do **Finza** em tarefas atômicas seq
     - Amarelo/Âmbar: `75% - 100%`
     - Família Rose: `> 100%` (estourado)
   - Comparativo visual: Orçado vs Realizado vs Saldo Disponível.
-  - *Critério de Aceite:* Atualização de orçamentos e as duas opções de cópia do mês anterior funcionam sem erros.
+  - *Critério de Aceite:* Atualização de orçamentos e as duas opções de cópia do mês anterior funcionam sem erros e sem interferência de Ticket.
 
-- [ ] **TASK-16: Tela de Relatórios e Métricas (`src/app/report/page.tsx`)**
+- [x] **TASK-16: Tela de Relatórios e Métricas (`src/app/report/page.tsx`)**
   - Abas: `Visão Geral`, `Por Categoria`, `Histórico Multimeses`.
   - Métricas inteligentes calculadas automaticamente:
-    - Categoria onde mais gastou no mês.
-    - Média diária de gastos no mês.
-    - Ritmo de consumo diário do saldo de Ticket até o fim do mês.
+    - Categoria onde mais gastou no mês (estritamente despesas pessoais).
+    - Média diária de gastos no mês (exclusiva da Conta Pessoal).
+    - Ritmo de consumo diário do saldo de Ticket até o fim do mês (métrica isolada em card próprio).
+    - Histórico multimeses refletindo a evolução financeira pessoal.
   - Gráficos visuais (barras empilhadas de evolução temporal de 3 a 6 meses, gráfico de rosca de categorias).
   - Botão "Exportar CSV" que gera download dos dados do mês ativo.
   - Estilização para impressão em PDF limpo.
