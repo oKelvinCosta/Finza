@@ -26,8 +26,8 @@ import { ResponsiveContainer, PieChart, Pie, Cell, Tooltip } from "recharts";
 export default function DashboardPage() {
   const { selectedMonth } = useMonthStore();
   const { openModal } = useModalStore();
-  const { data: transactions = [], isLoading: loadingTx } = useTransactions(selectedMonth);
-  const { data: budgets = [], isLoading: loadingBudgets } = useBudgets(selectedMonth);
+  const { data: transactions = [] } = useTransactions(selectedMonth);
+  const { data: budgets = [] } = useBudgets(selectedMonth);
 
   // 1. Isolamento da Carteira Pessoal (Crédito / Pix)
   const personalTransactions = transactions.filter((t) => t.payment_method !== "ticket");

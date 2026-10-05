@@ -20,11 +20,6 @@ const AuthContext = createContext<AuthContextType>({
 });
 
 export function AuthProvider({ children }: { children: ReactNode }) {
-  const [user, setUser] = useState<User | null>(null);
-  const [session, setSession] = useState<Session | null>(null);
-  const [isLoading, setIsLoading] = useState(true);
-  const router = useRouter();
-
   const supabase = useMemo(() => {
     try {
       return createClient();
@@ -33,23 +28,27 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     }
   }, []);
 
+  const [user, setUser] = useState<User | null>(null);
+  const [session, setSession] = useState<Session | null>(null);
+  const [isLoading, setIsLoading] = useState(Boolean(supabase));
+  const router = useRouter();
+
   useEffect(() => {
     if (!supabase) {
-      setIsLoading(false);
       return;
     }
 
     // Obter sessão inicial
-    supabase.auth.getSession().then(({ data: { session } }) => {
-      setSession(session);
-      setUser(session?.user ?? null);
+    supabase.auth.getSession().then(({ data }: { data: { session: Session | null } }) => {
+      setSession(data.session);
+      setUser(data.session?.user ?? null);
       setIsLoading(false);
     });
 
     // Escutar alterações de autenticação
     const {
       data: { subscription },
-    } = supabase.auth.onAuthStateChange((_event, session) => {
+    } = supabase.auth.onAuthStateChange((_event: unknown, session: Session | null) => {
       setSession(session);
       setUser(session?.user ?? null);
       setIsLoading(false);

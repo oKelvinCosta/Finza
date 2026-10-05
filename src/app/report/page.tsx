@@ -3,7 +3,7 @@
 import { useMemo } from "react";
 import { useMonthStore } from "@/stores/use-month-store";
 import { useTransactions, useAllTransactions } from "@/hooks/use-transactions";
-import { formatCurrency, formatMonthYear, formatDate } from "@/lib/utils";
+import { formatCurrency, formatMonthYear } from "@/lib/utils";
 import { Card, CardHeader, CardTitle, CardContent, CardDescription } from "@/components/ui/card";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { Button } from "@/components/ui/button";
@@ -26,9 +26,6 @@ import {
   Tooltip,
   Legend,
   CartesianGrid,
-  PieChart,
-  Pie,
-  Cell,
 } from "recharts";
 
 export default function ReportsPage() {

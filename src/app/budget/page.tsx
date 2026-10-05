@@ -21,12 +21,12 @@ import {
   DialogDescription,
   DialogFooter,
 } from "@/components/ui/dialog";
-import { Copy, Target, AlertTriangle, CheckCircle, Save } from "lucide-react";
+import { Copy, Save } from "lucide-react";
 
 export default function BudgetPage() {
   const { selectedMonth } = useMonthStore();
   const { data: categories = [] } = useCategories();
-  const { data: budgets = [], isLoading: loadingBudgets } = useBudgets(selectedMonth);
+  const { data: budgets = [] } = useBudgets(selectedMonth);
   const { data: transactions = [] } = useTransactions(selectedMonth);
 
   const setBudget = useSetBudget();
@@ -78,7 +78,7 @@ export default function BudgetPage() {
   // Executar cópia do mês anterior com a opção selecionada
   const handleConfirmCopy = async () => {
     try {
-      const result = await copyBudget.mutateAsync({
+      await copyBudget.mutateAsync({
         currentMonth: selectedMonth,
         mode: copyMode,
       });

@@ -176,7 +176,7 @@ Este documento decompõe o desenvolvimento do **Finza** em tarefas atômicas seq
   - Adicionar coluna `user_id` nas tabelas com políticas RLS restritas ao usuário logado.
   - *Critério de Aceite:* Usuário só enxerga e manipula suas próprias transações e orçamentos.
 
-- [ ] **TASK-21: Substituição da Camada de Serviços para Supabase**
+- [x] **TASK-21: Substituição da Camada de Serviços para Supabase**
   - Adaptar os hooks do TanStack Query (`useTransactions`, `useCreateTransaction`, `useBudgets`, etc.) para consultar a API do Supabase ao invés de dados mockados.
   - *Critério de Aceite:* Todas as operações de CRUD refletem diretamente no banco de dados PostgreSQL.
 
