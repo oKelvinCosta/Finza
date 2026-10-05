@@ -165,7 +165,7 @@ Este documento decompõe o desenvolvimento do **Finza** em tarefas atômicas seq
   - Instalar `@supabase/supabase-js` e `@supabase/ssr`.
   - *Critério de Aceite:* Conexão bem-sucedida com o Supabase.
 
-- [ ] **TASK-19: Execução dos Scripts SQL DDL e Índices no Supabase**
+- [x] **TASK-19: Execução dos Scripts SQL DDL e Índices no Supabase**
   - Rodar migrations para criação das tabelas `categories`, `transactions` e `budgets`.
   - Criar índices: `idx_transactions_date`, `idx_transactions_payment_method`, `idx_budgets_month_year`.
   - Inserir seeds iniciais de categorias.
