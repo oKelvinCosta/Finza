@@ -171,7 +171,7 @@ Este documento decompõe o desenvolvimento do **Finza** em tarefas atômicas seq
   - Inserir seeds iniciais de categorias.
   - *Critério de Aceite:* Tabelas e restrições criadas e validadas no console do Supabase.
 
-- [ ] **TASK-20: Autenticação Simples & Row Level Security (RLS)**
+- [x] **TASK-20: Autenticação Simples & Row Level Security (RLS)**
   - Adicionar suporte a autenticação de usuário (login simplificado / Supabase Auth).
   - Adicionar coluna `user_id` nas tabelas com políticas RLS restritas ao usuário logado.
   - *Critério de Aceite:* Usuário só enxerga e manipula suas próprias transações e orçamentos.

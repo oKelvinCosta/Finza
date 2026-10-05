@@ -6,6 +6,7 @@ export interface Category {
   name: string;
   type: TransactionType;
   color: string;
+  user_id?: string | null;
   created_at: string;
 }
 
@@ -21,6 +22,7 @@ export interface Transaction {
   is_paid: boolean;
   is_recurring: boolean;
   notes?: string | null;
+  user_id?: string;
   created_at: string;
 }
 
@@ -30,6 +32,7 @@ export interface Budget {
   category?: Category;
   month_year: string; // 'YYYY-MM'
   target_amount: number;
+  user_id?: string;
   created_at: string;
 }
 

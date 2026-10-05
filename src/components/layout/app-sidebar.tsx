@@ -2,8 +2,10 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { LayoutDashboard, ArrowLeftRight, PieChart, BarChart3, Wallet } from "lucide-react";
+import { LayoutDashboard, ArrowLeftRight, PieChart, BarChart3, Wallet, LogOut, User as UserIcon } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { useAuth } from "@/components/providers/auth-provider";
+import { Button } from "@/components/ui/button";
 
 const NAV_ITEMS = [
   { href: "/", label: "Dashboard", icon: LayoutDashboard },
@@ -14,6 +16,7 @@ const NAV_ITEMS = [
 
 export function AppSidebar() {
   const pathname = usePathname();
+  const { user, signOut } = useAuth();
 
   return (
     <aside className="hidden lg:flex w-64 border-r border-slate-200/80 bg-white flex-col shrink-0 min-h-screen">
@@ -57,12 +60,39 @@ export function AppSidebar() {
         })}
       </nav>
 
-      {/* Footer Info */}
-      <div className="p-4 border-t border-slate-100">
-        <div className="rounded-lg bg-slate-50 p-3 border border-slate-200/60">
-          <p className="text-xs font-semibold text-slate-700">Fase 1: Mock Local</p>
-          <p className="text-[11px] text-slate-500 mt-0.5">Isolamento mensal estrito e dados salvos no navegador.</p>
-        </div>
+      {/* User & Session Footer */}
+      <div className="p-3 border-t border-slate-100">
+        {user ? (
+          <div className="rounded-lg bg-slate-50 p-2.5 border border-slate-200/60 flex items-center justify-between gap-2">
+            <div className="flex items-center gap-2 min-w-0">
+              <div className="h-8 w-8 rounded-full bg-slate-200 flex items-center justify-center text-slate-700 shrink-0 text-xs font-semibold">
+                {user.email ? user.email.charAt(0).toUpperCase() : <UserIcon className="h-4 w-4" />}
+              </div>
+              <div className="min-w-0">
+                <p className="text-xs font-semibold text-slate-800 truncate" title={user.email ?? ""}>
+                  {user.email?.split("@")[0]}
+                </p>
+                <p className="text-[10px] text-slate-400 truncate" title={user.email ?? ""}>
+                  {user.email}
+                </p>
+              </div>
+            </div>
+            <Button
+              variant="ghost"
+              size="icon"
+              onClick={() => signOut()}
+              title="Sair da conta"
+              className="h-8 w-8 text-slate-400 hover:text-rose-600 hover:bg-rose-50 cursor-pointer shrink-0"
+            >
+              <LogOut className="h-4 w-4" />
+            </Button>
+          </div>
+        ) : (
+          <div className="rounded-lg bg-slate-50 p-3 border border-slate-200/60">
+            <p className="text-xs font-semibold text-slate-700">Finza Cloud</p>
+            <p className="text-[11px] text-slate-500 mt-0.5">Sincronizado com Supabase.</p>
+          </div>
+        )}
       </div>
     </aside>
   );
