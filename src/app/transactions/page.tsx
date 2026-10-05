@@ -65,6 +65,7 @@ import {
   SlidersHorizontal,
   ChevronDown,
   ChevronUp,
+  Repeat,
 } from "lucide-react";
 
 type SortOption = "date_desc" | "date_asc" | "amount_desc" | "amount_asc";
@@ -282,7 +283,18 @@ export default function TransactionsPage() {
 
       {/* Descrição */}
       <TableCell>
-        <div className="font-semibold text-slate-900 text-sm">{tx.description}</div>
+        <div className="flex items-center gap-1.5 flex-wrap">
+          <span className="font-semibold text-slate-900 text-sm">{tx.description}</span>
+          {tx.is_recurring && (
+            <span
+              title="Transação Recorrente Automática"
+              className="inline-flex items-center gap-0.5 px-1.5 py-0.2 rounded text-[10px] font-medium bg-slate-100 text-slate-600 border border-slate-200 shrink-0"
+            >
+              <Repeat className="h-2.5 w-2.5" />
+              <span>Recorrente</span>
+            </span>
+          )}
+        </div>
         {tx.notes && (
           <p className="text-xs text-slate-400 truncate max-w-xs">{tx.notes}</p>
         )}
@@ -427,9 +439,20 @@ export default function TransactionsPage() {
 
       {/* Linha 2: Descrição e notas */}
       <div className="min-w-0">
-        <h4 className="font-semibold text-slate-900 text-sm leading-snug break-words">
-          {tx.description}
-        </h4>
+        <div className="flex items-center gap-1.5 flex-wrap">
+          <h4 className="font-semibold text-slate-900 text-sm leading-snug break-words">
+            {tx.description}
+          </h4>
+          {tx.is_recurring && (
+            <span
+              title="Transação Recorrente Automática"
+              className="inline-flex items-center gap-0.5 px-1.5 py-0.2 rounded text-[10px] font-medium bg-slate-100 text-slate-600 border border-slate-200 shrink-0"
+            >
+              <Repeat className="h-2.5 w-2.5" />
+              <span>Recorrente</span>
+            </span>
+          )}
+        </div>
         {tx.notes && (
           <p className="text-xs text-slate-400 mt-0.5 line-clamp-1">{tx.notes}</p>
         )}

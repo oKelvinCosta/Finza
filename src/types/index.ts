@@ -21,6 +21,7 @@ export interface Transaction {
   payment_method: PaymentMethod;
   is_paid: boolean;
   is_recurring: boolean;
+  recurrence_source_id?: string | null;
   notes?: string | null;
   user_id?: string;
   created_at: string;

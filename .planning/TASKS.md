@@ -180,6 +180,6 @@ Este documento decompõe o desenvolvimento do **Finza** em tarefas atômicas seq
   - Adaptar os hooks do TanStack Query (`useTransactions`, `useCreateTransaction`, `useBudgets`, etc.) para consultar a API do Supabase ao invés de dados mockados.
   - *Critério de Aceite:* Todas as operações de CRUD refletem diretamente no banco de dados PostgreSQL.
 
-- [ ] **TASK-22: Automação de Transações Recorrentes (Virada de Mês)**
+- [x] **TASK-22: Automação de Transações Recorrentes (Virada de Mês)**
   - Implementar Edge Function ou job `pg_cron` no Supabase para identificar registros com `is_recurring = true` no último mês e replicá-los automaticamente no novo mês com `is_paid = false`.
   - *Critério de Aceite:* Transações recorrentes aparecem no novo mês sem intervenção manual.

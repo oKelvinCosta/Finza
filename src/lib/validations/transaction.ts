@@ -14,6 +14,7 @@ export const transactionFormSchema = z
     }),
     is_paid: z.boolean(),
     is_recurring: z.boolean(),
+    recurrence_source_id: z.string().optional().nullable(),
     notes: z.string().optional().nullable(),
   })
   .superRefine((data, ctx) => {
