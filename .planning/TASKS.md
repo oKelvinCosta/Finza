@@ -160,7 +160,7 @@ Este documento decompõe o desenvolvimento do **Finza** em tarefas atômicas seq
 
 ## FASE 2: Backend Supabase, Banco de Dados & Sincronização
 
-- [ ] **TASK-18: Criação e Configuração do Projeto Supabase**
+- [x] **TASK-18: Criação e Configuração do Projeto Supabase**
   - Configurar variáveis de ambiente (`NEXT_PUBLIC_SUPABASE_URL`, `NEXT_PUBLIC_SUPABASE_ANON_KEY`).
   - Instalar `@supabase/supabase-js` e `@supabase/ssr`.
   - *Critério de Aceite:* Conexão bem-sucedida com o Supabase.
